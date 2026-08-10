@@ -61,6 +61,20 @@ The **CIA Triad** is the foundational framework for information security across 
 ### Defense in Depth Strategy
 Never rely on a single layer of security. Implement multiple layers: Perimeter Firewall → Network Segmentation → Endpoint Detection (EDR) → Encryption at Rest & In Transit → Identity & Access Management (IAM).
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'What does the "C" in the CIA Triad represent?',
+                                'options' => ['Control', 'Confidentiality', 'Compliance', 'Centralization'],
+                                'correct' => 1,
+                                'explanation' => 'Confidentiality guarantees that data is kept secret from unauthorized individuals.',
+                            ],
+                            [
+                                'question' => 'Which security mechanism primarily ensures data Integrity?',
+                                'options' => ['Firewalls', 'AES-256 Encryption', 'SHA-256 Cryptographic Hashing', 'Load Balancers'],
+                                'correct' => 2,
+                                'explanation' => 'Cryptographic hashes produce unique checksums; any modification alters the hash value, detecting tampering.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'Risk Assessment & Defense-in-Depth',
@@ -81,6 +95,14 @@ Risk = Threat x Vulnerability x Impact
 - **NIST CSF**: Identify, Protect, Detect, Respond, Recover.
 - **ISO/IEC 27001**: International standard for Information Security Management Systems (ISMS).
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Purchasing cyber insurance for an enterprise is an example of which risk strategy?',
+                                'options' => ['Risk Avoidance', 'Risk Mitigation', 'Risk Transference', 'Risk Acceptance'],
+                                'correct' => 2,
+                                'explanation' => 'Cyber insurance transfers financial loss impact to a third-party insurer.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -118,6 +140,20 @@ Client                      Server
 - **SYN-ACK**: Server acknowledges and sends its own SYN.
 - **ACK**: Client acknowledges server's SYN; TCP connection established.
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'What is the correct sequence of packets in the TCP 3-way handshake?',
+                                'options' => ['ACK, SYN, SYN-ACK', 'SYN, SYN-ACK, ACK', 'SYN, ACK, FIN', 'CONNECT, ACCEPT, CONFIRM'],
+                                'correct' => 1,
+                                'explanation' => 'The handshake starts with SYN, server responds SYN-ACK, and client finishes with ACK.',
+                            ],
+                            [
+                                'question' => 'At which layer of the OSI model does IP routing operate?',
+                                'options' => ['Layer 2 - Data Link', 'Layer 3 - Network', 'Layer 4 - Transport', 'Layer 7 - Application'],
+                                'correct' => 1,
+                                'explanation' => 'IP routing operates at Layer 3 (Network Layer).',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'DNS Protocols, Packet Sniffing & Subnetting',
@@ -148,6 +184,14 @@ http.request.method == "POST"
 tcp.flags.syn == 1 && tcp.flags.ack == 0
 ```
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which DNS record type maps a domain name to an IPv6 address?',
+                                'options' => ['A Record', 'MX Record', 'AAAA Record', 'TXT Record'],
+                                'correct' => 2,
+                                'explanation' => 'AAAA records store IPv6 addresses, whereas A records store IPv4 addresses.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -188,6 +232,14 @@ chown www-data:www-data /var/www/html/index.php
 - `/var/log/auth.log` or `/var/log/secure`: Authentication logs (SSH logins, sudo attempts).
 - `/etc/ssh/sshd_config`: SSH daemon security configuration.
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'What octal numeric value represents `rwxr-xr--` permissions in Linux?',
+                                'options' => ['777', '754', '644', '755'],
+                                'correct' => 1,
+                                'explanation' => 'rwx (4+2+1=7), r-x (4+0+1=5), r-- (4+0+0=4) = 754.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'SSH Hardening & Linux Log Inspection',
@@ -220,6 +272,14 @@ grep "Failed password" /var/log/auth.log | awk '{print $11}' | sort | uniq -c | 
 tail -f /var/log/auth.log
 ```
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which configuration in `/etc/ssh/sshd_config` disables password logins and forces SSH key auth?',
+                                'options' => ['PasswordAuthentication no', 'PermitRootLogin yes', 'AllowPasswords false', 'StrictHostKeyChecking no'],
+                                'correct' => 0,
+                                'explanation' => 'Setting `PasswordAuthentication no` disables password authentication across all SSH sessions.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -246,6 +306,14 @@ The **OWASP Top 10** represents the most critical web application security risks
 9. **A09: Security Logging and Monitoring Failures**: Insufficient audit logs leading to undetected breaches.
 10. **A10: Server-Side Request Forgery (SSRF)**: Web app fetching remote resources without validating the user-supplied URL.
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which vulnerability currently occupies the #1 spot on the OWASP Top 10?',
+                                'options' => ['SQL Injection', 'Broken Access Control', 'Cryptographic Failures', 'SSRF'],
+                                'correct' => 1,
+                                'explanation' => 'Broken Access Control (A01) is currently ranked #1 by OWASP.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'Preventing Broken Access Control & Misconfigurations',
@@ -272,6 +340,14 @@ public function view(User $user, Invoice $invoice): bool
 - Turn off `APP_DEBUG=false` in production.
 - Enforce HTTPS with HTTP Strict Transport Security (`HSTS`).
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Changing a URL from `/api/invoice/10` to `/api/invoice/11` to view another user\'s private data is an example of what flaw?',
+                                'options' => ['XSS', 'IDOR (Insecure Direct Object Reference)', 'CSRF', 'SQL Injection'],
+                                'correct' => 1,
+                                'explanation' => 'IDOR occurs when an app exposes a reference to an internal object without access validation.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -309,6 +385,14 @@ The `--` comments out the password validation check, logging the attacker in as 
 2. **Inferential SQLi (Blind)**: Boolean-based or Time-based delay (`SLEEP(5)`), no data returned directly.
 3. **Out-of-Band SQLi**: Triggering DNS or HTTP requests to attacker-controlled server.
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'In SQL syntax, what do `--` or `#` characters signify?',
+                                'options' => ['Syntax errors', 'Comment characters that cause the database to ignore subsequent code', 'Wildcard matching', 'String concatenation'],
+                                'correct' => 1,
+                                'explanation' => 'Attackers use comment characters (`--` or `#`) to bypass remaining SQL clauses like password checks.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'Remediating SQL Injection with Prepared Statements',
@@ -339,6 +423,14 @@ $user = User::where('email', $request->email)->first();
 $users = DB::select('SELECT * FROM users WHERE status = ?', [$status]);
 ```
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'What is the most effective defense against SQL Injection vulnerabilities?',
+                                'options' => ['Using regex input filtering only', 'Using Prepared Statements with Parameterized Queries', 'Using WAF exclusively', 'Encoding HTML entities'],
+                                'correct' => 1,
+                                'explanation' => 'Prepared statements separate SQL code from user data, preventing user input from altering query structure.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -353,7 +445,12 @@ MD,
             foreach ($modData['lessons'] as $j => $lData) {
                 Lesson::updateOrCreate(
                     ['module_id' => $module->id, 'title' => $lData['title']],
-                    ['content' => $lData['content'], 'order' => $j + 1, 'duration_minutes' => 30]
+                    [
+                        'content' => $lData['content'],
+                        'order' => $j + 1,
+                        'duration_minutes' => 30,
+                        'quiz_data' => $lData['quiz'] ?? null,
+                    ]
                 );
             }
 
@@ -432,6 +529,14 @@ A **Relational Database Management System (RDBMS)** structures data into tables 
 - **InnoDB (Default)**: Supports ACID transactions, Foreign Keys, row-level locking, and crash recovery.
 - **MyISAM**: Legacy engine, table-level locking, no transaction support. Always use **InnoDB** in modern applications.
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which MySQL storage engine supports ACID transactions and foreign key constraints?',
+                                'options' => ['MyISAM', 'Memory', 'InnoDB', 'CSV'],
+                                'correct' => 2,
+                                'explanation' => 'InnoDB is the default MySQL engine supporting ACID transactions and referential integrity.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'Creating Databases & Table Schema DDL',
@@ -458,6 +563,14 @@ CREATE TABLE users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which SQL constraint guarantees that every row in a table has a unique, non-null identifier?',
+                                'options' => ['FOREIGN KEY', 'NOT NULL', 'PRIMARY KEY', 'DEFAULT'],
+                                'correct' => 2,
+                                'explanation' => 'PRIMARY KEY uniquely identifies rows and cannot contain NULL values.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -488,6 +601,14 @@ WHERE email = 'kwame@lythub.com';
 - `DELETE FROM users WHERE id = 5;`: Removes specified row, logs deletion, triggers CASCADE hooks.
 - `TRUNCATE TABLE logs;`: Drops and recreates table, resets AUTO_INCREMENT, much faster.
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'What key difference distinguishes TRUNCATE TABLE from DELETE FROM table?',
+                                'options' => ['TRUNCATE is slower', 'TRUNCATE deletes individual rows with triggers', 'TRUNCATE drops and recreates the table without individual row deletion logs', 'DELETE resets auto-increment IDs'],
+                                'correct' => 2,
+                                'explanation' => 'TRUNCATE is a DDL operation that clears the table and resets auto-increment counters.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'Advanced SELECT Filtering & Aggregations',
@@ -513,6 +634,14 @@ HAVING avg_score >= 70.0;
 ```
 > **Note**: `WHERE` filters rows before grouping; `HAVING` filters aggregate groups after `GROUP BY`.
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which clause is used to filter aggregated results AFTER a `GROUP BY` clause?',
+                                'options' => ['WHERE', 'HAVING', 'ORDER BY', 'FILTER'],
+                                'correct' => 1,
+                                'explanation' => 'HAVING filters aggregate values computed after grouping.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -548,6 +677,14 @@ FROM users
 LEFT JOIN certificates ON users.id = certificates.user_id;
 ```
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which JOIN type returns all records from the left table even if there are no matching rows in the right table?',
+                                'options' => ['INNER JOIN', 'LEFT JOIN', 'CROSS JOIN', 'RIGHT JOIN'],
+                                'correct' => 1,
+                                'explanation' => 'LEFT JOIN returns all left-table rows, filling missing right-table columns with NULL.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'Subqueries & Derived Tables',
@@ -577,6 +714,14 @@ JOIN (
 ) attempts ON u.id = attempts.user_id;
 ```
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'What is a subquery placed inside the FROM clause called?',
+                                'options' => ['Inline Query', 'Derived Table', 'Correlated Subquery', 'Stored Function'],
+                                'correct' => 1,
+                                'explanation' => 'A subquery in the FROM clause acts as a temporary table called a Derived Table.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -606,6 +751,14 @@ CREATE INDEX idx_attempts_user_exam ON exam_attempts(user_id, exam_id);
 - Frequently updated columns (every write requires re-indexing).
 - Low-cardinality columns (e.g., `gender` or boolean flags).
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'How does a B-Tree index improve SELECT query performance?',
+                                'options' => ['By compressing data on disk', 'By reducing full table scans from O(N) to O(log N)', 'By caching results in RAM', 'By removing foreign key checks'],
+                                'correct' => 1,
+                                'explanation' => 'B-Tree indexes allow MySQL to locate target rows in logarithmic time complexity.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'Analyzing Queries with EXPLAIN',
@@ -624,6 +777,14 @@ EXPLAIN SELECT * FROM exam_attempts WHERE user_id = 5 AND exam_id = 1;
 - `key`: Actual index selected by the optimizer.
 - `rows`: Estimated number of rows MySQL must examine. Reduce this number for faster queries!
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'In an EXPLAIN output, what does `type: ALL` indicate?',
+                                'options' => ['Index lookup', 'Full table scan (inefficient query)', 'Constant lookup', 'NULL result'],
+                                'correct' => 1,
+                                'explanation' => '`type: ALL` means MySQL is scanning every row in the table, indicating a missing index.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -659,6 +820,14 @@ COMMIT;
 -- ROLLBACK;
 ```
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which ACID property guarantees that all database updates in a transaction succeed completely or roll back entirely?',
+                                'options' => ['Atomicity', 'Consistency', 'Isolation', 'Durability'],
+                                'correct' => 0,
+                                'explanation' => 'Atomicity ensures all-or-nothing execution.',
+                            ]
+                        ]
                     ],
                     [
                         'title' => 'Database Backup, Restoration & User Privileges',
@@ -688,6 +857,14 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON lythub_platform.* TO 'lythub_app'@'local
 FLUSH PRIVILEGES;
 ```
 MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which CLI command is used to export a MySQL database to an SQL backup dump file?',
+                                'options' => ['mysql-export', 'mysqldump', 'mysql-backup', 'db-dump'],
+                                'correct' => 1,
+                                'explanation' => '`mysqldump` is the official client utility for database backups.',
+                            ]
+                        ]
                     ]
                 ]
             ],
@@ -702,7 +879,12 @@ MD,
             foreach ($modData['lessons'] as $j => $lData) {
                 Lesson::updateOrCreate(
                     ['module_id' => $module->id, 'title' => $lData['title']],
-                    ['content' => $lData['content'], 'order' => $j + 1, 'duration_minutes' => 30]
+                    [
+                        'content' => $lData['content'],
+                        'order' => $j + 1,
+                        'duration_minutes' => 30,
+                        'quiz_data' => $lData['quiz'] ?? null,
+                    ]
                 );
             }
 

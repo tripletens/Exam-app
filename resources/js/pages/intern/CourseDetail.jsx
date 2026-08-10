@@ -17,6 +17,10 @@ import {
   ExternalLink,
   Video,
   Sparkles,
+  HelpCircle,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../api';
@@ -37,12 +41,10 @@ function renderMarkdown(text) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // Headings
   html = html.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-indigo-400 mt-6 mb-2 flex items-center gap-2">$1</h3>');
   html = html.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white mt-8 mb-3 pb-1 border-b border-gray-800">$1</h2>');
   html = html.replace(/^# (.*$)/gim, '<h1 class="text-xl font-extrabold text-white mt-4 mb-4">$1</h1>');
 
-  // Code blocks ```code```
   html = html.replace(/```([a-z]*)\n([\s\S]*?)```/gim, (match, lang, code) => {
     return `<div class="my-4 rounded-xl overflow-hidden border border-gray-800 bg-gray-950 font-mono text-xs">
       <div class="px-4 py-1.5 bg-gray-900 border-b border-gray-800 text-gray-500 uppercase tracking-wider font-semibold text-[10px] flex justify-between">
@@ -53,17 +55,11 @@ function renderMarkdown(text) {
     </div>`;
   });
 
-  // Inline code `code`
   html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-800 text-indigo-300 px-1.5 py-0.5 rounded font-mono text-xs">$1</code>');
-
-  // Bold & Italic
   html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
   html = html.replace(/\*([^*]+)\*/g, '<em class="text-gray-300">$1</em>');
-
-  // Lists
   html = html.replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc text-gray-300 my-1">$1</li>');
 
-  // Paragraphs
   html = html.split('\n\n').map(p => {
     if (p.startsWith('<h') || p.startsWith('<div') || p.startsWith('<li')) return p;
     return `<p class="mb-4 text-gray-300 leading-relaxed text-sm">${p}</p>`;
@@ -71,6 +67,122 @@ function renderMarkdown(text) {
 
   return html;
 }
+
+// ─── Interactive Lesson Quiz Component ────────────────────────────────────────
+const LessonQuizWidget = ({ quizData = [] }) => {
+  const [userAnswers, setUserAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    setUserAnswers({});
+    setSubmitted(false);
+  }, [quizData]);
+
+  if (!quizData || quizData.length === 0) return null;
+
+  const handleSelect = (qIdx, optIdx) => {
+    if (submitted) return;
+    setUserAnswers(prev => ({ ...prev, [qIdx]: optIdx }));
+  };
+
+  const score = Object.entries(userAnswers).filter(([qIdx, optIdx]) => {
+    return quizData[qIdx]?.correct === optIdx;
+  }).length;
+
+  return (
+    <div className="card border-indigo-500/30 bg-gray-900/90 space-y-6">
+      <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+        <div className="flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <HelpCircle size={18} />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white">Lesson Checkpoint Quiz</h3>
+            <p className="text-xs text-gray-400">Test your understanding of this lesson before continuing</p>
+          </div>
+        </div>
+        {submitted && (
+          <span className={`badge text-xs px-3 py-1 ${score === quizData.length ? 'badge-green' : 'badge-yellow'}`}>
+            {score} / {quizData.length} Correct
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-6">
+        {quizData.map((q, qIdx) => {
+          const selected = userAnswers[qIdx];
+          const isCorrect = selected === q.correct;
+
+          return (
+            <div key={qIdx} className="p-4 rounded-xl bg-gray-950/60 border border-gray-800 space-y-3">
+              <p className="text-sm font-semibold text-white">
+                <span className="text-indigo-400 mr-2">Q{qIdx + 1}.</span>
+                {q.question}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {q.options.map((opt, optIdx) => {
+                  let btnStyle = 'bg-gray-900 border-gray-800 text-gray-300 hover:border-gray-700';
+
+                  if (selected === optIdx) {
+                    btnStyle = 'bg-indigo-600/20 border-indigo-500 text-indigo-300 font-semibold';
+                  }
+
+                  if (submitted) {
+                    if (optIdx === q.correct) {
+                      btnStyle = 'bg-emerald-500/20 border-emerald-500 text-emerald-300 font-semibold';
+                    } else if (selected === optIdx && !isCorrect) {
+                      btnStyle = 'bg-red-500/20 border-red-500 text-red-300';
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={optIdx}
+                      onClick={() => handleSelect(qIdx, optIdx)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border text-left text-xs transition-all ${btnStyle}`}
+                    >
+                      <span className="w-5 h-5 rounded-full border flex items-center justify-center text-[10px] font-bold shrink-0">
+                        {String.fromCharCode(65 + optIdx)}
+                      </span>
+                      <span className="flex-1">{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {submitted && q.explanation && (
+                <div className="mt-3 p-3 rounded-lg bg-gray-900 border border-gray-800 text-xs text-gray-300">
+                  <span className="font-semibold text-indigo-400">Explanation: </span>
+                  {q.explanation}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center justify-between pt-2">
+        {!submitted ? (
+          <button
+            onClick={() => setSubmitted(true)}
+            disabled={Object.keys(userAnswers).length < quizData.length}
+            className="btn-primary text-xs disabled:opacity-40"
+          >
+            Check Answers
+          </button>
+        ) : (
+          <button
+            onClick={() => { setSubmitted(false); setUserAnswers({}); }}
+            className="btn-secondary text-xs"
+          >
+            <RotateCcw size={14} /> Retry Quiz
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // ─── Progress Bar ────────────────────────────────────────────────────────────
 const ProgressBar = ({ value = 0 }) => (
@@ -107,7 +219,6 @@ export default function CourseDetail() {
   const [openModules, setOpenModules] = useState({});
   const [completing, setCompleting] = useState(null);
 
-  // Fetch course
   useEffect(() => {
     const fetchCourse = async () => {
       try {
@@ -226,7 +337,6 @@ export default function CourseDetail() {
     (m.lessons || []).some((l) => l.id === activeLesson?.id)
   );
 
-  // Find module resources for the active lesson module
   const moduleResources = activeModule?.resources || [];
   const videoResource = moduleResources.find(r => r.type?.value === 'youtube' || r.type === 'youtube');
   const embedUrl = videoResource ? getYouTubeEmbedUrl(videoResource.url) : null;
@@ -432,6 +542,11 @@ export default function CourseDetail() {
                     dangerouslySetInnerHTML={{ __html: renderMarkdown(activeLesson.content) }}
                   />
                 </div>
+              )}
+
+              {/* Interactive Lesson Checkpoint Quiz */}
+              {activeLesson.quiz_data && activeLesson.quiz_data.length > 0 && (
+                <LessonQuizWidget quizData={activeLesson.quiz_data} />
               )}
 
               {/* Module Learning Resources */}

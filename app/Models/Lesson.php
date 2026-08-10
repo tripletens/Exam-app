@@ -12,7 +12,11 @@ class Lesson extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['module_id', 'title', 'content', 'order', 'duration_minutes'];
+    protected $fillable = ['module_id', 'title', 'content', 'order', 'duration_minutes', 'quiz_data'];
+
+    protected $casts = [
+        'quiz_data' => 'array',
+    ];
 
     public function module(): BelongsTo
     {

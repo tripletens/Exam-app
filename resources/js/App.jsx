@@ -20,6 +20,8 @@ const AdminResources = lazy(() => import('./pages/admin/AdminResources'));
 const AdminInterns = lazy(() => import('./pages/admin/AdminInterns'));
 const InternProfile = lazy(() => import('./pages/admin/InternProfile'));
 const AdminExams = lazy(() => import('./pages/admin/AdminExams'));
+const AdminAttempts = lazy(() => import('./pages/admin/AdminAttempts'));
+const AdminResults = lazy(() => import('./pages/admin/AdminResults'));
 const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'));
 const AdminCertificates = lazy(() => import('./pages/admin/AdminCertificates'));
 const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
@@ -105,12 +107,12 @@ function App() {
                     } />
                     <Route path="/admin/attempts" element={
                         <ProtectedRoute allowedRoles={['super_admin']}>
-                            <AdminLayout><AdminReports /></AdminLayout>
+                            <AdminLayout><AdminAttempts /></AdminLayout>
                         </ProtectedRoute>
                     } />
                     <Route path="/admin/results" element={
                         <ProtectedRoute allowedRoles={['super_admin']}>
-                            <AdminLayout><AdminReports /></AdminLayout>
+                            <AdminLayout><AdminResults /></AdminLayout>
                         </ProtectedRoute>
                     } />
                     <Route path="/admin/interns" element={

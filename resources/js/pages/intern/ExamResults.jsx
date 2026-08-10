@@ -1,22 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { attemptApi } from '../../api';
 import { toast } from 'react-toastify';
-import { Loader2, CheckCircle2, XCircle, Clock, Award, ArrowLeft, HelpCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Clock, ArrowLeft, HelpCircle } from 'lucide-react';
 
 export default function ExamResults() {
     const { attemptId } = useParams();
+    const navigate = useNavigate();
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         attemptApi.get(attemptId)
-            .then(res => setResult(res.data.data))
+            .then(res => {
+                const data = res.data.data;
+                if (data && data.is_submitted === false) {
+                    // Attempt active & unsubmitted -> Redirect to exam room!
+                    navigate(`/intern/exams/take/${attemptId}`, { replace: true });
+                    return;
+                }
+                setResult(data);
+            })
             .catch(err => {
                 toast.error(err.response?.data?.message || 'Failed to load exam results');
             })
             .finally(() => setLoading(false));
-    }, [attemptId]);
+    }, [attemptId, navigate]);
 
     if (loading) {
         return (

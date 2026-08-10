@@ -16,7 +16,6 @@ class ExamAttemptController extends BaseApiController
 
     /**
      * Start a new exam attempt.
-     * Records start_time server-side. Returns shuffled questions WITHOUT is_correct.
      */
     public function start(Exam $exam): JsonResponse
     {
@@ -43,7 +42,6 @@ class ExamAttemptController extends BaseApiController
             ->first();
 
         if ($activeAttempt && !$activeAttempt->isExpired()) {
-            // Resume existing attempt
             return $this->buildAttemptResponse($activeAttempt, $exam);
         }
 
@@ -80,7 +78,6 @@ class ExamAttemptController extends BaseApiController
                 'options' => $options->map(fn($o) => [
                     'id' => $o->id,
                     'option_text' => $o->option_text,
-                    // is_correct is intentionally OMITTED
                 ]),
             ];
         });
@@ -96,6 +93,7 @@ class ExamAttemptController extends BaseApiController
             'started_at' => $attempt->started_at,
             'questions' => $questionsData,
             'saved_answers' => $savedAnswers,
+            'is_submitted' => false,
         ]);
     }
 
@@ -157,9 +155,7 @@ class ExamAttemptController extends BaseApiController
             return $this->error('Exam already submitted.', 403);
         }
 
-        // Server-side time validation — the ONLY authoritative check
         if ($attempt->isExpired()) {
-            // Still grade it, but mark as auto-submitted
             $attempt->update(['auto_submitted' => true]);
         }
 
@@ -176,16 +172,18 @@ class ExamAttemptController extends BaseApiController
     }
 
     /**
-     * Get result for a submitted attempt.
+     * Get attempt details or submitted results.
      */
     public function show(ExamAttempt $attempt): JsonResponse
     {
         $this->authorize('view', $attempt);
 
+        // If active (unsubmitted), return active attempt data for test taker
         if (!$attempt->isSubmitted()) {
-            return $this->error('Exam not yet submitted.', 404);
+            return $this->buildAttemptResponse($attempt, $attempt->exam);
         }
 
+        // If submitted, return graded results
         $attempt->load('exam', 'answers.question.options', 'answers.selectedOption');
 
         $showAnswers = $attempt->exam->show_results_immediately || auth()->user()->isSuperAdmin();
@@ -218,6 +216,7 @@ class ExamAttemptController extends BaseApiController
             'time_taken_minutes' => $attempt->started_at->diffInMinutes($attempt->submitted_at),
             'submitted_at' => $attempt->submitted_at,
             'answers' => $answersData,
+            'is_submitted' => true,
         ]);
     }
 }

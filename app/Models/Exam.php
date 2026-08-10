@@ -70,7 +70,10 @@ class Exam extends Model
 
     public function isPublished(): bool
     {
-        return $this->status === ExamStatus::Published;
+        if ($this->status instanceof ExamStatus) {
+            return $this->status === ExamStatus::Published;
+        }
+        return $this->status === 'published' || $this->status?->value === 'published';
     }
 
     public function isAvailableNow(): bool

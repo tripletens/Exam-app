@@ -98,7 +98,7 @@ export default function ExamInstructions() {
     setStarting(true);
     try {
       const res = await api.post(`/exams/${id}/start`);
-      const attemptId = res.data?.attempt_id || res.data?.data?.id || res.data?.id;
+      const attemptId = res.data?.data?.attempt_id || res.data?.attempt_id || res.data?.data?.id || res.data?.id;
       if (!attemptId) {
         throw new Error('No attempt ID returned from server.');
       }

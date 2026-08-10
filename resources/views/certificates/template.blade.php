@@ -2,149 +2,178 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Certificate of Completion — Lythub Technologies</title>
     <style>
-        @page { margin: 0; size: A4 landscape; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @page {
+            margin: 0;
+            size: A4 landscape;
+        }
         body {
-            font-family: 'Georgia', serif;
-            background: #fff;
-            width: 297mm;
-            height: 210mm;
+            font-family: 'DejaVu Serif', 'Georgia', serif;
+            background-color: #0F172A;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            color: #F8FAFC;
+        }
+        .cert-container {
+            padding: 25px;
+            height: 100%;
+            box-sizing: border-box;
+        }
+        .cert-border {
+            border: 4px solid #D4AF37;
+            padding: 20px;
+            height: 100%;
+            box-sizing: border-box;
+            background-color: #0B132B;
             position: relative;
-            overflow: hidden;
         }
-        .border-outer {
-            position: absolute;
-            inset: 8mm;
-            border: 4px solid #1a1a2e;
-        }
-        .border-inner {
-            position: absolute;
-            inset: 11mm;
-            border: 1.5px solid #4a90a4;
-        }
-        .content {
-            position: absolute;
-            inset: 14mm;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        .inner-border {
+            border: 1px solid #334155;
+            padding: 35px 50px;
             text-align: center;
-            padding: 20px 40px;
+            height: 100%;
+            box-sizing: border-box;
         }
-        .logo-text {
-            font-size: 22px;
+        .brand-header {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 14px;
             font-weight: bold;
-            color: #1a1a2e;
-            letter-spacing: 6px;
+            letter-spacing: 5px;
+            color: #D4AF37;
             text-transform: uppercase;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
-        .logo-sub {
-            font-size: 11px;
-            color: #4a90a4;
+        .brand-sub {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 10px;
             letter-spacing: 3px;
+            color: #94A3B8;
             text-transform: uppercase;
-            margin-bottom: 24px;
+            margin-bottom: 25px;
         }
         .cert-title {
-            font-size: 32px;
-            color: #1a1a2e;
-            font-style: italic;
-            margin-bottom: 14px;
+            font-size: 34px;
+            color: #FFFFFF;
+            font-weight: normal;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
         }
-        .cert-body {
+        .cert-subtitle {
             font-size: 13px;
-            color: #555;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-        }
-        .intern-name {
-            font-size: 36px;
-            color: #1a1a2e;
+            color: #94A3B8;
             font-style: italic;
-            margin: 10px 0;
-            border-bottom: 2px solid #4a90a4;
-            padding-bottom: 6px;
+            margin-bottom: 15px;
         }
-        .course-name {
-            font-size: 20px;
-            color: #1a1a2e;
+        .recipient-name {
+            font-size: 38px;
+            color: #F59E0B;
             font-weight: bold;
-            margin: 10px 0;
+            font-style: italic;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #D4AF37;
+            display: inline-block;
+            min-width: 400px;
+        }
+        .course-title {
+            font-size: 22px;
+            color: #FFFFFF;
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 25px;
             letter-spacing: 1px;
         }
-        .meta {
-            font-size: 11px;
-            color: #888;
-            margin-top: 20px;
-        }
-        .footer {
-            display: flex;
-            justify-content: space-between;
+        .footer-table {
             width: 100%;
-            margin-top: 24px;
-            padding-top: 12px;
-            border-top: 1px solid #ddd;
+            margin-top: 40px;
+            border-collapse: collapse;
+        }
+        .footer-cell {
+            vertical-align: bottom;
+            text-align: center;
+            width: 33%;
+        }
+        .signature-line {
+            border-top: 1px solid #475569;
+            width: 80%;
+            margin: 0 auto 5px auto;
+            padding-top: 5px;
+            font-size: 12px;
+            color: #E2E8F0;
+            font-weight: bold;
+        }
+        .signature-sub {
             font-size: 10px;
-            color: #999;
+            color: #94A3B8;
         }
-        .cert-number {
+        .badge-gold {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 2px solid #D4AF37;
+            background-color: #1E293B;
+            margin: 0 auto;
+            line-height: 70px;
             font-size: 9px;
-            color: #bbb;
-            margin-top: 6px;
+            color: #D4AF37;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
-        .corner {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            border-color: #4a90a4;
-            border-style: solid;
+        .cert-meta {
+            font-size: 10px;
+            color: #64748B;
+            margin-top: 25px;
+            font-family: monospace;
         }
-        .corner-tl { top: 14mm; left: 14mm; border-width: 3px 0 0 3px; }
-        .corner-tr { top: 14mm; right: 14mm; border-width: 3px 3px 0 0; }
-        .corner-bl { bottom: 14mm; left: 14mm; border-width: 0 0 3px 3px; }
-        .corner-br { bottom: 14mm; right: 14mm; border-width: 0 3px 3px 0; }
     </style>
 </head>
 <body>
-    <div class="border-outer"></div>
-    <div class="border-inner"></div>
-    <div class="corner corner-tl"></div>
-    <div class="corner corner-tr"></div>
-    <div class="corner corner-bl"></div>
-    <div class="corner corner-br"></div>
+    <div class="cert-container">
+        <div class="cert-border">
+            <div class="inner-border">
 
-    <div class="content">
-        <div class="logo-text">Lythub Technologies</div>
-        <div class="logo-sub">Learning &amp; Development</div>
+                <div class="brand-header">Lythub Technologies</div>
+                <div class="brand-sub">Enterprise Learning & Development Institute</div>
 
-        <div class="cert-title">Certificate of Completion</div>
+                <div class="cert-title">Certificate of Completion</div>
 
-        <div class="cert-body">This certifies that</div>
+                <div class="cert-subtitle">This official certificate is proudly presented to</div>
 
-        <div class="intern-name">{{ $certificate->user->name }}</div>
+                <div class="recipient-name">{{ $certificate->user->name }}</div>
 
-        <div class="cert-body">has successfully completed</div>
+                <div class="cert-subtitle">for successfully completing the specialized industry curriculum in</div>
 
-        <div class="course-name">
-            {{ $certificate->course?->title ?? $certificate->learningPath?->title ?? 'Training Program' }}
+                <div class="course-title">
+                    {{ $certificate->course?->title ?? $certificate->learningPath?->title ?? 'Software Engineering Training Program' }}
+                </div>
+
+                <table class="footer-table">
+                    <tr>
+                        <td class="footer-cell">
+                            <div class="signature-line">{{ $certificate->issued_at->format('F j, Y') }}</div>
+                            <div class="signature-sub">Date of Issuance</div>
+                        </td>
+                        <td class="footer-cell">
+                            <div class="badge-gold">VERIFIED</div>
+                        </td>
+                        <td class="footer-cell">
+                            <div class="signature-line">{{ $certificate->issuedBy->name }}</div>
+                            <div class="signature-sub">Authorized Program Director</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="cert-meta">
+                    Certificate ID: {{ $certificate->certificate_number }} &nbsp;|&nbsp; Verification URL: https://lythub.com/verify/{{ $certificate->certificate_number }}
+                </div>
+
+            </div>
         </div>
-
-        <div class="meta">
-            Completed on {{ $certificate->issued_at->format('F j, Y') }}
-            &nbsp;&bull;&nbsp;
-            Issued by {{ $certificate->issuedBy->name }}
-        </div>
-
-        <div class="footer">
-            <span>Lythub Technologies</span>
-            <span>lythub.com</span>
-        </div>
-        <div class="cert-number">Certificate No: {{ $certificate->certificate_number }}</div>
     </div>
 </body>
 </html>

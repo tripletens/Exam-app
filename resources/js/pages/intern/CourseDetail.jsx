@@ -15,9 +15,62 @@ import {
   Layers,
   ArrowLeft,
   ExternalLink,
+  Video,
+  Sparkles,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../api';
+
+// ─── Helper: YouTube Embed URL ───────────────────────────────────────────────
+function getYouTubeEmbedUrl(url) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? `https://www.youtube.com/embed/${match[2]}` : null;
+}
+
+// ─── Helper: Simple Markdown to HTML Renderer ─────────────────────────────────
+function renderMarkdown(text) {
+  if (!text) return '';
+  let html = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Headings
+  html = html.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-indigo-400 mt-6 mb-2 flex items-center gap-2">$1</h3>');
+  html = html.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white mt-8 mb-3 pb-1 border-b border-gray-800">$1</h2>');
+  html = html.replace(/^# (.*$)/gim, '<h1 class="text-xl font-extrabold text-white mt-4 mb-4">$1</h1>');
+
+  // Code blocks ```code```
+  html = html.replace(/```([a-z]*)\n([\s\S]*?)```/gim, (match, lang, code) => {
+    return `<div class="my-4 rounded-xl overflow-hidden border border-gray-800 bg-gray-950 font-mono text-xs">
+      <div class="px-4 py-1.5 bg-gray-900 border-b border-gray-800 text-gray-500 uppercase tracking-wider font-semibold text-[10px] flex justify-between">
+        <span>${lang || 'code'}</span>
+        <span>Lecture Code Snippet</span>
+      </div>
+      <pre class="p-4 text-emerald-400 overflow-x-auto leading-relaxed"><code>${code.trim()}</code></pre>
+    </div>`;
+  });
+
+  // Inline code `code`
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-800 text-indigo-300 px-1.5 py-0.5 rounded font-mono text-xs">$1</code>');
+
+  // Bold & Italic
+  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+  html = html.replace(/\*([^*]+)\*/g, '<em class="text-gray-300">$1</em>');
+
+  // Lists
+  html = html.replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc text-gray-300 my-1">$1</li>');
+
+  // Paragraphs
+  html = html.split('\n\n').map(p => {
+    if (p.startsWith('<h') || p.startsWith('<div') || p.startsWith('<li')) return p;
+    return `<p class="mb-4 text-gray-300 leading-relaxed text-sm">${p}</p>`;
+  }).join('');
+
+  return html;
+}
 
 // ─── Progress Bar ────────────────────────────────────────────────────────────
 const ProgressBar = ({ value = 0 }) => (
@@ -38,6 +91,7 @@ const Skeleton = ({ className = '' }) => (
 const ResourceIcon = ({ type }) => {
   const map = {
     pdf: <FileText size={14} className="text-red-400" />,
+    youtube: <Video size={14} className="text-red-500" />,
     video: <PlayCircle size={14} className="text-blue-400" />,
     link: <ExternalLink size={14} className="text-indigo-400" />,
   };
@@ -51,7 +105,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [activeLesson, setActiveLesson] = useState(null);
   const [openModules, setOpenModules] = useState({});
-  const [completing, setCompleting] = useState(null); // lessonId being marked complete
+  const [completing, setCompleting] = useState(null);
 
   // Fetch course
   useEffect(() => {
@@ -61,12 +115,10 @@ export default function CourseDetail() {
         const data = res.data?.data || res.data;
         setCourse(data);
 
-        // Open the first module and select first incomplete lesson by default
         if (data?.modules?.length) {
           const firstModule = data.modules[0];
           setOpenModules({ [firstModule.id]: true });
 
-          // Find first incomplete lesson
           let found = null;
           for (const mod of data.modules) {
             for (const lesson of mod.lessons || []) {
@@ -88,19 +140,16 @@ export default function CourseDetail() {
     fetchCourse();
   }, [id]);
 
-  // Toggle module open/close
   const toggleModule = useCallback((moduleId) => {
     setOpenModules((prev) => ({ ...prev, [moduleId]: !prev[moduleId] }));
   }, []);
 
-  // Mark lesson complete
   const markComplete = useCallback(
     async (lesson) => {
       if (lesson.completed || completing === lesson.id) return;
       setCompleting(lesson.id);
       try {
         await api.post(`/lessons/${lesson.id}/complete`);
-        // Update local state
         setCourse((prev) => {
           if (!prev) return prev;
           const updatedModules = prev.modules.map((mod) => ({
@@ -109,7 +158,6 @@ export default function CourseDetail() {
               l.id === lesson.id ? { ...l, completed: true } : l
             ),
           }));
-          // Recalculate progress
           const allLessons = updatedModules.flatMap((m) => m.lessons || []);
           const completedCount = allLessons.filter((l) => l.completed).length;
           const progress = allLessons.length
@@ -130,11 +178,9 @@ export default function CourseDetail() {
     [completing]
   );
 
-  // ── Loading ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex">
-        {/* Sidebar skeleton */}
         <aside className="w-80 shrink-0 bg-gray-900 border-r border-gray-800 p-4 space-y-4 hidden lg:block">
           <Skeleton className="h-6 w-40 mb-6" />
           {Array.from({ length: 3 }).map((_, i) => (
@@ -145,7 +191,6 @@ export default function CourseDetail() {
             </div>
           ))}
         </aside>
-        {/* Content skeleton */}
         <main className="flex-1 p-6 lg:p-8 space-y-6">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-4 w-full" />
@@ -181,10 +226,14 @@ export default function CourseDetail() {
     (m.lessons || []).some((l) => l.id === activeLesson?.id)
   );
 
+  // Find module resources for the active lesson module
+  const moduleResources = activeModule?.resources || [];
+  const videoResource = moduleResources.find(r => r.type?.value === 'youtube' || r.type === 'youtube');
+  const embedUrl = videoResource ? getYouTubeEmbedUrl(videoResource.url) : null;
+
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col">
-
-      {/* ── Top Header Bar ──────────────────────────────────────────────── */}
+      {/* Top Header Bar */}
       <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -198,13 +247,8 @@ export default function CourseDetail() {
               <h1 className="text-base font-bold text-white line-clamp-1">{course.title}</h1>
               <div className="flex items-center gap-3 mt-0.5">
                 {course.category && (
-                  <span className="inline-flex items-center gap-1 text-xs text-indigo-400">
+                  <span className="inline-flex items-center gap-1 text-xs text-indigo-400 font-medium">
                     <Layers size={11} /> {course.category}
-                  </span>
-                )}
-                {course.duration && (
-                  <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                    <Clock size={11} /> {course.duration}
                   </span>
                 )}
               </div>
@@ -226,12 +270,11 @@ export default function CourseDetail() {
       </div>
 
       <div className="flex flex-1 overflow-hidden max-w-full">
-
-        {/* ── Left Sidebar – Modules & Lessons ────────────────────────── */}
+        {/* Left Sidebar – Modules & Lessons */}
         <aside className="w-80 shrink-0 bg-gray-900 border-r border-gray-800 overflow-y-auto hidden lg:flex flex-col">
           <div className="p-4 border-b border-gray-800">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Course Content
+              Modules & Lessons
             </p>
           </div>
           <nav className="flex-1 p-3 space-y-1">
@@ -242,7 +285,6 @@ export default function CourseDetail() {
 
               return (
                 <div key={mod.id}>
-                  {/* Module Header */}
                   <button
                     onClick={() => toggleModule(mod.id)}
                     className="w-full flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-800/60 transition-colors group"
@@ -268,7 +310,6 @@ export default function CourseDetail() {
                     </div>
                   </button>
 
-                  {/* Lessons */}
                   {isOpen && (
                     <div className="ml-3 pl-3 border-l border-gray-800 mt-1 mb-2 space-y-0.5">
                       {modLessons.map((lesson) => {
@@ -301,35 +342,9 @@ export default function CourseDetail() {
                             <span className="text-xs font-medium line-clamp-2 leading-snug">
                               {lesson.title}
                             </span>
-                            {lesson.duration && (
-                              <span className="ml-auto text-xs text-gray-600 shrink-0">
-                                {lesson.duration}
-                              </span>
-                            )}
                           </button>
                         );
                       })}
-
-                      {/* Module Resources */}
-                      {(mod.resources || []).length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-gray-800/60">
-                          <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider px-3 mb-1">
-                            Resources
-                          </p>
-                          {mod.resources.map((res) => (
-                            <a
-                              key={res.id}
-                              href={res.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-500 hover:text-indigo-400 hover:bg-gray-800/40 transition-colors"
-                            >
-                              <ResourceIcon type={res.type} />
-                              <span className="truncate">{res.title}</span>
-                            </a>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
@@ -338,23 +353,22 @@ export default function CourseDetail() {
           </nav>
         </aside>
 
-        {/* ── Main Content Area ────────────────────────────────────────── */}
+        {/* Main Content Area */}
         <main className="flex-1 overflow-y-auto">
           {activeLesson ? (
-            <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
-
+            <div className="p-6 lg:p-8 max-w-4xl mx-auto space-y-6 animate-fade-in">
               {/* Lesson Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-gray-800">
                 <div>
                   {activeModule && (
-                    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">
+                    <p className="text-xs text-indigo-400 uppercase tracking-wider font-semibold mb-1">
                       {activeModule.title}
                     </p>
                   )}
-                  <h2 className="text-xl font-bold text-white">{activeLesson.title}</h2>
-                  {activeLesson.duration && (
-                    <span className="inline-flex items-center gap-1 mt-1 text-xs text-gray-500">
-                      <Clock size={12} /> {activeLesson.duration}
+                  <h2 className="text-2xl font-extrabold text-white">{activeLesson.title}</h2>
+                  {activeLesson.duration_minutes && (
+                    <span className="inline-flex items-center gap-1 mt-1.5 text-xs text-gray-500">
+                      <Clock size={12} /> {activeLesson.duration_minutes} mins estimated
                     </span>
                   )}
                 </div>
@@ -371,7 +385,7 @@ export default function CourseDetail() {
                 >
                   {activeLesson.completed ? (
                     <>
-                      <CheckCircle size={16} /> Completed
+                      <CheckCircle size={16} /> Lesson Completed
                     </>
                   ) : completing === activeLesson.id ? (
                     <>
@@ -386,54 +400,68 @@ export default function CourseDetail() {
                 </button>
               </div>
 
-              {/* Video Embed */}
-              {activeLesson.video_url && (
-                <div className="rounded-2xl overflow-hidden aspect-video bg-black">
-                  <iframe
-                    src={activeLesson.video_url}
-                    title={activeLesson.title}
-                    className="w-full h-full"
-                    allowFullScreen
+              {/* YouTube Video Player Embed */}
+              {embedUrl && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-gray-400 px-1">
+                    <span className="flex items-center gap-1.5 font-semibold text-red-400">
+                      <Video size={16} /> Video Lecture
+                    </span>
+                    <span>HD 1080p</span>
+                  </div>
+                  <div className="rounded-2xl overflow-hidden aspect-video bg-black shadow-2xl border border-gray-800">
+                    <iframe
+                      src={embedUrl}
+                      title={activeLesson.title}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Lecture Notes (Markdown Formatted) */}
+              {activeLesson.content && (
+                <div className="card space-y-3 border-gray-800 bg-gray-900/90">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider border-b border-gray-800 pb-3">
+                    <Sparkles size={14} /> Lecture Notes & Curriculum Study Guide
+                  </div>
+                  <div
+                    className="prose prose-invert max-w-none text-gray-300 leading-relaxed text-sm"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(activeLesson.content) }}
                   />
                 </div>
               )}
 
-              {/* Lesson Content */}
-              {activeLesson.content && (
-                <div
-                  className="prose prose-invert prose-sm max-w-none bg-gray-900 border border-gray-800 rounded-2xl p-6 text-gray-300 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: activeLesson.content }}
-                />
-              )}
-
-              {/* Lesson Resources */}
-              {(activeLesson.resources || []).length > 0 && (
-                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-                  <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+              {/* Module Learning Resources */}
+              {moduleResources.length > 0 && (
+                <div className="card border-gray-800 bg-gray-900/60 space-y-4">
+                  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                     <FileText size={16} className="text-indigo-400" />
-                    Lesson Resources
+                    Recommended Study Resources
                   </h3>
-                  <div className="space-y-2">
-                    {activeLesson.resources.map((res) => (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {moduleResources.map((res) => (
                       <a
                         key={res.id}
                         href={res.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-xl bg-gray-800/50 hover:bg-gray-800 border border-gray-700 hover:border-indigo-500/30 transition-all group"
+                        className="flex items-center gap-3 p-3.5 rounded-xl bg-gray-800/60 hover:bg-gray-800 border border-gray-700/60 hover:border-indigo-500/40 transition-all group"
                       >
-                        <div className="p-2 rounded-lg bg-gray-700">
-                          <ResourceIcon type={res.type} />
+                        <div className="p-2.5 rounded-xl bg-gray-900 border border-gray-700/80">
+                          <ResourceIcon type={res.type?.value || res.type} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-200 group-hover:text-white truncate transition-colors">
+                          <p className="text-xs font-semibold text-gray-200 group-hover:text-white truncate transition-colors">
                             {res.title}
                           </p>
-                          {res.type && (
-                            <p className="text-xs text-gray-500 capitalize">{res.type}</p>
-                          )}
+                          <p className="text-[11px] text-gray-500 capitalize mt-0.5">
+                            {res.type?.value || res.type} {res.author ? `• ${res.author}` : ''}
+                          </p>
                         </div>
-                        <Download size={14} className="text-gray-500 group-hover:text-indigo-400 transition-colors shrink-0" />
+                        <ExternalLink size={14} className="text-gray-500 group-hover:text-indigo-400 transition-colors shrink-0" />
                       </a>
                     ))}
                   </div>
@@ -446,22 +474,20 @@ export default function CourseDetail() {
                 const prev = idx > 0 ? allLessons[idx - 1] : null;
                 const next = idx < allLessons.length - 1 ? allLessons[idx + 1] : null;
                 return (
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-800">
+                  <div className="flex items-center justify-between pt-6 border-t border-gray-800">
                     <button
                       onClick={() => prev && setActiveLesson(prev)}
                       disabled={!prev}
-                      className="flex items-center gap-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      className="btn-secondary text-xs disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      <ArrowLeft size={15} />
-                      {prev ? prev.title : 'No previous'}
+                      <ArrowLeft size={14} /> Previous Lesson
                     </button>
                     <button
                       onClick={() => next && setActiveLesson(next)}
                       disabled={!next}
-                      className="flex items-center gap-2 text-sm text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      className="btn-primary text-xs disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      {next ? next.title : 'No next'}
-                      <ChevronRight size={15} />
+                      Next Lesson <ChevronRight size={14} />
                     </button>
                   </div>
                 );

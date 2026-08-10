@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             CourseSeeder::class,
             ComprehensiveExamSeeder::class,
             ModuleExamsSeeder::class,
+            ComprehensiveQuestionBankSeeder::class,
         ]);
     }
 }

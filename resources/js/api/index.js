@@ -103,6 +103,7 @@ export const examApi = {
 export const questionApi = {
     list: (params) => api.get('/questions', { params }),
     create: (data) => api.post('/questions', data),
+    bulkUpload: (examId, data) => api.post(`/exams/${examId}/bulk-questions`, data),
     update: (id, data) => api.put(`/questions/${id}`, data),
     delete: (id) => api.delete(`/questions/${id}`),
 };

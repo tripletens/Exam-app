@@ -15,22 +15,25 @@ use App\Http\Controllers\Api\ResourceController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
-// ─── Public ─────────────────────────────────────────────────────────────────
-Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
-});
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
 
-// ─── Authenticated ───────────────────────────────────────────────────────────
+// Public routes
+Route::post('/auth/login', [AuthController::class, 'login']);
+
+// Authenticated routes
 Route::middleware('auth:sanctum')->group(function () {
-
     // Auth
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
 
-    // Courses
+    // Courses (read-only for interns)
     Route::get('/courses', [CourseController::class, 'index']);
     Route::get('/courses/{course}', [CourseController::class, 'show']);
-    Route::get('/courses/{course}/progress', [CourseController::class, 'myProgress']);
+    Route::get('/courses/{course}/progress', [CourseController::class, 'progress']);
 
     // Modules
     Route::get('/modules', [ModuleController::class, 'index']);
@@ -49,7 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/exams', [ExamController::class, 'index']);
     Route::get('/exams/{exam}', [ExamController::class, 'show']);
 
-    // Exam Attempts (interns)
+    // Exam Attempts (Taking exams)
     Route::post('/exams/{exam}/start', [ExamAttemptController::class, 'start']);
     Route::get('/exam-attempts/{attempt}/time-remaining', [ExamAttemptController::class, 'timeRemaining']);
     Route::post('/exam-attempts/{attempt}/save-answer', [ExamAttemptController::class, 'saveAnswer']);
@@ -93,6 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/exams/{exam}', [ExamController::class, 'update']);
         Route::post('/exams/{exam}/publish', [ExamController::class, 'publish']);
         Route::post('/exams/{exam}/unpublish', [ExamController::class, 'unpublish']);
+        Route::post('/exams/{exam}/bulk-questions', [QuestionController::class, 'bulkStore']);
 
         // Questions
         Route::apiResource('/questions', QuestionController::class)->except(['index', 'show']);
@@ -126,13 +130,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy']);
 
         // Certificates
-        Route::post('/certificates', [CertificateController::class, 'issue']);
+        Route::post('/certificates', [CertificateController::class, 'store']);
         Route::delete('/certificates/{certificate}', [CertificateController::class, 'destroy']);
 
         // Reports
         Route::get('/reports/intern-performance', [ReportController::class, 'internPerformance']);
         Route::get('/reports/course-completion', [ReportController::class, 'courseCompletion']);
         Route::get('/reports/exam-performance', [ReportController::class, 'examPerformance']);
-        Route::get('/reports/export', [ReportController::class, 'exportCsv']);
+        Route::get('/reports/export', [ReportController::class, 'export']);
     });
 });

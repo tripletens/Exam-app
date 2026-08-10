@@ -15,14 +15,22 @@ class ExamService
      */
     public function gradeAttempt(ExamAttempt $attempt): ExamAttempt
     {
-        $exam = $attempt->exam()->with('questions.options')->first();
+        $exam = $attempt->exam;
+
+        if (!empty($attempt->question_ids)) {
+            $questions = Question::with('options')->whereIn('id', $attempt->question_ids)->get();
+        } else {
+            $questions = $exam->questions()->with('options')->take(50)->get();
+        }
+
         $answers = $attempt->answers()->with('question.options')->get();
 
-        $totalMarks = $exam->questions->sum('marks');
+        $totalMarks = $questions->sum('marks');
         $marksObtained = 0;
 
         foreach ($answers as $answer) {
             $question = $answer->question;
+            if (!$question) continue;
             $marks = $this->gradeAnswer($question, $answer);
             $answer->update([
                 'is_correct' => $marks > 0,
@@ -68,7 +76,6 @@ class ExamService
 
     private function gradeMultipleAnswer(Question $question, ExamAnswer $answer): float
     {
-        // Partial credit not implemented — full marks only if ALL correct options selected
         if (!$answer->selected_option_id) return 0;
         $correctIds = $question->options->where('is_correct', true)->pluck('id')->sort()->values();
         $selectedIds = collect(json_decode($answer->answer_text ?? '[]'))->sort()->values();

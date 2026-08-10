@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ExamAttempt extends Model
 {
     protected $fillable = [
-        'user_id', 'exam_id', 'started_at', 'submitted_at',
+        'user_id', 'exam_id', 'question_ids', 'started_at', 'submitted_at',
         'score', 'total_marks', 'percentage', 'passed',
         'attempt_number', 'auto_submitted', 'ip_address', 'user_agent',
     ];
@@ -17,6 +17,7 @@ class ExamAttempt extends Model
     protected function casts(): array
     {
         return [
+            'question_ids' => 'array',
             'started_at' => 'datetime',
             'submitted_at' => 'datetime',
             'score' => 'decimal:2',

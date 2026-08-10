@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\ExamAnswer;
 use App\Models\ExamAttempt;
 use App\Models\Exam;
+use App\Models\Question;
 use App\Services\ExamService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,11 +46,18 @@ class ExamAttemptController extends BaseApiController
             return $this->buildAttemptResponse($activeAttempt, $exam);
         }
 
-        // Create new attempt
+        // Create new attempt sampling 50 random questions from the exam's pool
         $attempt = DB::transaction(function () use ($user, $exam, $attemptCount) {
+            $questionIds = $exam->questions()
+                ->inRandomOrder()
+                ->take(50)
+                ->pluck('id')
+                ->toArray();
+
             return ExamAttempt::create([
                 'user_id' => $user->id,
                 'exam_id' => $exam->id,
+                'question_ids' => $questionIds,
                 'started_at' => now(),
                 'attempt_number' => $attemptCount + 1,
                 'ip_address' => request()->ip(),
@@ -62,11 +70,17 @@ class ExamAttemptController extends BaseApiController
 
     private function buildAttemptResponse(ExamAttempt $attempt, Exam $exam): JsonResponse
     {
-        $exam->load('questions.options');
+        if (!empty($attempt->question_ids)) {
+            $questions = Question::with('options')
+                ->whereIn('id', $attempt->question_ids)
+                ->get();
+        } else {
+            $questions = $exam->questions()->with('options')->take(50)->get();
+        }
 
-        $questions = $exam->randomize_questions
-            ? $exam->questions->shuffle()
-            : $exam->questions;
+        if ($exam->randomize_questions) {
+            $questions = $questions->shuffle();
+        }
 
         $questionsData = $questions->map(function ($q) use ($exam) {
             $options = $exam->randomize_answers ? $q->options->shuffle() : $q->options;

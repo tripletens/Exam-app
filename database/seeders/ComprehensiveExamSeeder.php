@@ -23,7 +23,7 @@ class ComprehensiveExamSeeder extends Seeder
                 'description' => 'Official 2-Hour Comprehensive Assessment containing 50 questions across Cybersecurity, Networking, Linux, MySQL, Web Security, and Software Engineering. Total Marks: 100.',
                 'duration_minutes' => 120, // 2 Hours
                 'pass_percentage' => 70, // 70% to pass
-                'max_attempts' => 2,
+                'max_attempts' => 5,
                 'randomize_questions' => true,
                 'randomize_answers' => true,
                 'show_results_immediately' => true,

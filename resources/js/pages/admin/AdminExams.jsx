@@ -8,7 +8,7 @@ export default function AdminExams() {
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState({ title: '', description: '', duration_minutes: 30, pass_percentage: 70, max_attempts: 1, randomize_questions: false, randomize_answers: false, show_results_immediately: true, status: 'draft' });
+    const [form, setForm] = useState({ title: '', description: '', duration_minutes: 120, pass_percentage: 70, max_attempts: 5, randomize_questions: false, randomize_answers: false, show_results_immediately: true, status: 'draft' });
     const [saving, setSaving] = useState(false);
 
     const load = () => {

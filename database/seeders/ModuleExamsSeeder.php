@@ -168,6 +168,18 @@ MD,
                     ]
                 );
             }
+
+            LearningResource::updateOrCreate(
+                ['module_id' => $module->id, 'title' => "{$modData['title']} — Video Lecture"],
+                [
+                    'course_id' => $csCourse->id,
+                    'type' => 'youtube',
+                    'url' => $modData['video_url'],
+                    'description' => "Full video lecture covering {$modData['title']}.",
+                    'is_required' => true,
+                    'duration_minutes' => 30,
+                ]
+            );
         }
 
         // Enroll all interns in CS Math course
@@ -193,7 +205,7 @@ MD,
                     'description' => "Official 2-Hour Module Certification Exam for {$module->title}. 50 Questions, 100 Marks Total.",
                     'duration_minutes' => 120, // 2 Hours
                     'pass_percentage' => 70, // 70% Pass mark
-                    'max_attempts' => 3,
+                    'max_attempts' => 5, // 5 retries allowed
                     'randomize_questions' => true,
                     'randomize_answers' => true,
                     'show_results_immediately' => true,
@@ -216,7 +228,6 @@ MD,
 
     private function seed50ModuleQuestions(Exam $exam, string $moduleTitle): void
     {
-        // Generate 50 questions per module exam (2 marks each = 100 total marks)
         for ($i = 1; $i <= 50; $i++) {
             $qText = "Question {$i}: {$moduleTitle} Concept Check {$i}";
             if ($exam->questions()->where('question_text', $qText)->exists()) continue;

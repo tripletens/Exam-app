@@ -5,19 +5,27 @@ import 'react-toastify/dist/ReactToastify.css';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import InternLayout from './layouts/InternLayout';
+import useAuthStore from './store/authStore';
 import { Loader2 } from 'lucide-react';
 
-// Pages — lazy loaded for performance
+// Pages
 const Login = lazy(() => import('./pages/Login'));
 
-// Admin
+// Admin Pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminCourses = lazy(() => import('./pages/admin/AdminCourses'));
+const AdminModules = lazy(() => import('./pages/admin/AdminModules'));
+const AdminLessons = lazy(() => import('./pages/admin/AdminLessons'));
+const AdminResources = lazy(() => import('./pages/admin/AdminResources'));
 const AdminInterns = lazy(() => import('./pages/admin/AdminInterns'));
 const InternProfile = lazy(() => import('./pages/admin/InternProfile'));
 const AdminExams = lazy(() => import('./pages/admin/AdminExams'));
+const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'));
+const AdminCertificates = lazy(() => import('./pages/admin/AdminCertificates'));
+const AdminReports = lazy(() => import('./pages/admin/AdminReports'));
+const AdminSettings = lazy(() => import('./pages/admin/AdminSettings'));
 
-// Intern
+// Intern Pages
 const InternDashboard = lazy(() => import('./pages/intern/InternDashboard'));
 const MyCourses = lazy(() => import('./pages/intern/MyCourses'));
 const CourseDetail = lazy(() => import('./pages/intern/CourseDetail'));
@@ -33,6 +41,18 @@ const PageLoader = () => (
     </div>
 );
 
+// Fallback redirect component for unknown routes
+const CatchAllRedirect = () => {
+    const { user, isAuthenticated } = useAuthStore();
+    if (isAuthenticated && user) {
+        const role = typeof user.role === 'object' ? user.role.value : user.role;
+        if (role === 'super_admin') return <Navigate to="/admin" replace />;
+        if (role === 'instructor') return <Navigate to="/instructor" replace />;
+        return <Navigate to="/intern" replace />;
+    }
+    return <Navigate to="/login" replace />;
+};
+
 function App() {
     return (
         <BrowserRouter>
@@ -40,7 +60,7 @@ function App() {
                 <Routes>
                     {/* Public */}
                     <Route path="/login" element={<Login />} />
-                    <Route path="/" element={<Navigate to="/login" replace />} />
+                    <Route path="/" element={<CatchAllRedirect />} />
 
                     {/* Admin routes */}
                     <Route path="/admin" element={
@@ -53,6 +73,46 @@ function App() {
                             <AdminLayout><AdminCourses /></AdminLayout>
                         </ProtectedRoute>
                     } />
+                    <Route path="/admin/modules" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminModules /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/lessons" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminLessons /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/resources" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminResources /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/learning-paths" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminCourses /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/exams" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminExams /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/questions" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminExams /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/attempts" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminReports /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/results" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminReports /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
                     <Route path="/admin/interns" element={
                         <ProtectedRoute allowedRoles={['super_admin']}>
                             <AdminLayout><AdminInterns /></AdminLayout>
@@ -63,9 +123,29 @@ function App() {
                             <AdminLayout><InternProfile /></AdminLayout>
                         </ProtectedRoute>
                     } />
-                    <Route path="/admin/exams" element={
+                    <Route path="/admin/performance" element={
                         <ProtectedRoute allowedRoles={['super_admin']}>
-                            <AdminLayout><AdminExams /></AdminLayout>
+                            <AdminLayout><AdminReports /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/certificates" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminCertificates /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/announcements" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminAnnouncements /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/reports" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminReports /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/settings" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminSettings /></AdminLayout>
                         </ProtectedRoute>
                     } />
 
@@ -110,9 +190,19 @@ function App() {
                             <InternLayout><MyCertificates /></InternLayout>
                         </ProtectedRoute>
                     } />
+                    <Route path="/intern/announcements" element={
+                        <ProtectedRoute allowedRoles={['intern']}>
+                            <InternLayout><AdminAnnouncements /></InternLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/intern/profile" element={
+                        <ProtectedRoute allowedRoles={['intern']}>
+                            <InternLayout><AdminSettings /></InternLayout>
+                        </ProtectedRoute>
+                    } />
 
                     {/* Catch-all */}
-                    <Route path="*" element={<Navigate to="/login" replace />} />
+                    <Route path="*" element={<CatchAllRedirect />} />
                 </Routes>
             </Suspense>
 

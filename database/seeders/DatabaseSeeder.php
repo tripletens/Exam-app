@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             RoleAndUserSeeder::class,
             CourseSeeder::class,
             ComprehensiveExamSeeder::class,
+            ModuleExamsSeeder::class,
         ]);
     }
 }

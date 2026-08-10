@@ -40,6 +40,8 @@ class ModuleExamsSeeder extends Seeder
                 'title' => 'Computer Science Fundamentals & Algorithms',
                 'desc' => 'Binary representation, Big-O complexity analysis, arrays, stacks, queues, hash tables, trees, and sorting algorithms.',
                 'video_url' => 'https://www.youtube.com/watch?v=8hly31xKLI0',
+                'pdf_url' => 'https://introcs.cs.princeton.edu/java/10paper/cs-intro.pdf',
+                'pdf_title' => 'Princeton CS — Algorithms & Data Structures Reading Manual.pdf',
                 'lessons' => [
                     [
                         'title' => 'Binary Numbers, Memory Layout & Big-O Time Complexity',
@@ -79,6 +81,8 @@ MD,
                 'title' => 'Applied Statistics & Probability for Developers',
                 'desc' => 'Descriptive statistics (mean, median, mode, variance, standard deviation), probability distributions, and hypothesis testing.',
                 'video_url' => 'https://www.youtube.com/watch?v=xxpc-HPKN28',
+                'pdf_url' => 'https://www.openintro.org/download.php?file=os4_tablet&referrer=/stat/textbook.php',
+                'pdf_title' => 'OpenIntro Statistics — Applied Probability & Distribution Manual.pdf',
                 'lessons' => [
                     [
                         'title' => 'Descriptive Statistics & Normal Distribution',
@@ -118,6 +122,8 @@ MD,
                 'title' => 'Applied Linear Algebra & Vector Mathematics',
                 'desc' => 'Vector spaces, dot products, matrix transformations, linear equations, determinants, and eigenvalues.',
                 'video_url' => 'https://www.youtube.com/watch?v=fNk_zzaMoSs',
+                'pdf_url' => 'https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/8bb730a911f42299865d64805c56d7df_MIT18_06S10_notes.pdf',
+                'pdf_title' => 'MIT OpenCourseWare — Linear Algebra & Vector Space Handbook.pdf',
                 'lessons' => [
                     [
                         'title' => 'Vectors, Linear Transformations & Matrix Operations',
@@ -176,6 +182,7 @@ MD,
                 );
             }
 
+            // Video resource
             LearningResource::updateOrCreate(
                 ['module_id' => $module->id, 'title' => "{$modData['title']} — Video Lecture"],
                 [
@@ -185,6 +192,19 @@ MD,
                     'description' => "Full video lecture covering {$modData['title']}.",
                     'is_required' => true,
                     'duration_minutes' => 30,
+                ]
+            );
+
+            // PDF resource
+            LearningResource::updateOrCreate(
+                ['module_id' => $module->id, 'title' => $modData['pdf_title']],
+                [
+                    'course_id' => $csCourse->id,
+                    'type' => 'pdf',
+                    'url' => $modData['pdf_url'],
+                    'description' => "Downloadable PDF reading manual for {$modData['title']}.",
+                    'is_required' => false,
+                    'duration_minutes' => 45,
                 ]
             );
         }

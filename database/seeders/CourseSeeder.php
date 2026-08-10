@@ -17,13 +17,13 @@ class CourseSeeder extends Seeder
         $admin = User::where('email', 'admin@lythub.com')->first();
         $interns = User::where('role', 'intern')->get();
 
-        // ─── Course 1: Cybersecurity Fundamentals ───────────────────────────────
+        // ─── Course 1: Cybersecurity Fundamentals ────────────────────────────────
         $cyberCourse = Course::updateOrCreate(
             ['slug' => 'cybersecurity-fundamentals'],
             [
                 'created_by' => $admin->id,
-                'title' => 'Cybersecurity Fundamentals',
-                'description' => 'A comprehensive, industry-aligned cybersecurity course covering network security, Linux administration, authentication, web vulnerabilities (OWASP Top 10), SQL injection, and incident response.',
+                'title' => 'Cybersecurity Fundamentals & Threat Protection',
+                'description' => 'Comprehensive foundation in cybersecurity principles, threat vectors, network security, Linux CLI hardening, OWASP Top 10 vulnerabilities, and security operations.',
                 'category' => 'Cybersecurity',
                 'difficulty' => 'beginner',
                 'status' => 'published',
@@ -34,70 +34,36 @@ class CourseSeeder extends Seeder
         $cyberModules = [
             [
                 'title' => 'Cybersecurity Fundamentals & The CIA Triad',
-                'desc' => 'Core concepts of information security, threat modeling, and security controls.',
+                'desc' => 'Core security concepts, confidentiality, integrity, availability, risk management, and authentication controls.',
                 'video_url' => 'https://www.youtube.com/watch?v=inWWhr5tnEA',
+                'pdf_url' => 'https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-53r5.pdf',
+                'pdf_title' => 'NIST SP 800-53 — Cybersecurity Controls & CIA Triad Guide.pdf',
                 'lessons' => [
                     [
-                        'title' => 'Understanding the CIA Triad & Threat Landscape',
+                        'title' => 'Introduction to the CIA Triad & Risk Management',
                         'content' => <<<'MD'
-# Introduction to Information Security
+# Cybersecurity Fundamentals & CIA Triad
 
-The **CIA Triad** is the foundational framework for information security across all modern enterprise systems:
+Security architecture relies on three primary pillars known as the **CIA Triad**:
 
-1. **Confidentiality**: Ensuring sensitive data is accessible only to authorized users (e.g., AES-256 encryption, access control lists).
-2. **Integrity**: Safeguarding the accuracy and completeness of information and processing methods (e.g., SHA-256 hashing, digital signatures).
-3. **Availability**: Ensuring authorized users have timely and reliable access to information and resources (e.g., load balancing, DDoS mitigation, redundant backups).
+### 1. Confidentiality
+Guarantees that sensitive data is kept secret from unauthorized individuals.
+- **Controls**: AES-256 Encryption, Access Control Lists (ACLs), Multi-Factor Authentication (MFA).
 
----
+### 2. Integrity
+Guarantees that data has not been altered or tampered with by unauthorized parties.
+- **Controls**: Cryptographic Hashing (SHA-256), Digital Signatures, Write-Once Storage.
 
-### Threat Vectors & Attack Categories
-- **Malware**: Ransomware, Trojans, Keyloggers, Spyware.
-- **Social Engineering**: Phishing, Spear Phishing, Baiting, Pretexting.
-- **Network Attacks**: Man-in-the-Middle (MitM), DNS Spoofing, Packet Sniffing.
-
-### Defense in Depth Strategy
-Never rely on a single layer of security. Implement multiple layers: Perimeter Firewall → Network Segmentation → Endpoint Detection (EDR) → Encryption at Rest & In Transit → Identity & Access Management (IAM).
+### 3. Availability
+Guarantees that systems and applications remain accessible to authorized users when needed.
+- **Controls**: Redundant Load Balancers, Automated Failover Clusters, Daily Offsite Backups.
 MD,
                         'quiz' => [
                             [
-                                'question' => 'What does the "C" in the CIA Triad represent?',
+                                'question' => 'Which pillar of the CIA Triad guarantees data is kept secret from unauthorized individuals?',
                                 'options' => ['Control', 'Confidentiality', 'Compliance', 'Centralization'],
                                 'correct' => 1,
-                                'explanation' => 'Confidentiality guarantees that data is kept secret from unauthorized individuals.',
-                            ],
-                            [
-                                'question' => 'Which security mechanism primarily ensures data Integrity?',
-                                'options' => ['Firewalls', 'AES-256 Encryption', 'SHA-256 Cryptographic Hashing', 'Load Balancers'],
-                                'correct' => 2,
-                                'explanation' => 'Cryptographic hashes produce unique checksums; any modification alters the hash value, detecting tampering.',
-                            ]
-                        ]
-                    ],
-                    [
-                        'title' => 'Risk Assessment & Defense-in-Depth',
-                        'content' => <<<'MD'
-# Risk Assessment & Risk Mitigation Frameworks
-
-Risk is defined as the probability of a threat actor exploiting a vulnerability and the resulting business impact:
-
-Risk = Threat x Vulnerability x Impact
-
-### Key Risk Mitigation Options
-- **Risk Avoidance**: Ceasing the risky activity (e.g., disabling legacy protocols like Telnet/FTP).
-- **Risk Mitigation**: Implementing security controls (e.g., deploying WAF, MFA).
-- **Risk Transference**: Offloading risk to a third party (e.g., cyber insurance).
-- **Risk Acceptance**: Acknowledging the risk when mitigation cost exceeds loss impact.
-
-### Security Frameworks Overview
-- **NIST CSF**: Identify, Protect, Detect, Respond, Recover.
-- **ISO/IEC 27001**: International standard for Information Security Management Systems (ISMS).
-MD,
-                        'quiz' => [
-                            [
-                                'question' => 'Purchasing cyber insurance for an enterprise is an example of which risk strategy?',
-                                'options' => ['Risk Avoidance', 'Risk Mitigation', 'Risk Transference', 'Risk Acceptance'],
-                                'correct' => 2,
-                                'explanation' => 'Cyber insurance transfers financial loss impact to a third-party insurer.',
+                                'explanation' => 'Confidentiality ensures that information is accessible only to authorized users and systems.',
                             ]
                         ]
                     ]
@@ -105,44 +71,35 @@ MD,
             ],
             [
                 'title' => 'Networking Fundamentals for Security Engineers',
-                'desc' => 'TCP/IP protocol suite, OSI 7-layer model, Wireshark packet analysis, and DNS security.',
+                'desc' => 'OSI model 7 layers, TCP/IP protocol suite, IP addressing, DNS resolution, and packet analysis.',
                 'video_url' => 'https://www.youtube.com/watch?v=IPvYjXCsTg8',
+                'pdf_url' => 'https://www.ietf.org/rfc/rfc793.txt',
+                'pdf_title' => 'RFC 793 — Transmission Control Protocol (TCP/IP) Specification.pdf',
                 'lessons' => [
                     [
-                        'title' => 'OSI 7-Layer Model vs. TCP/IP Architecture',
+                        'title' => 'OSI 7-Layer Model & TCP 3-Way Handshake',
                         'content' => <<<'MD'
-# Network Protocols & Layered Architecture
+# Networking Fundamentals for Security
 
-Understanding network protocols is mandatory for security analysis, intrusion detection, and packet inspection.
+Understanding network protocols is crucial for packet inspection and firewall configuration.
 
-### OSI Model Layers
-1. **Physical**: Bits over medium (Ethernet cables, Fiber, RF).
-2. **Data Link**: MAC addressing, Ethernet frames, Switches.
-3. **Network**: IP addressing, ICMP, Routers (IP Packets).
-4. **Transport**: TCP (connection-oriented, reliable) & UDP (connectionless, fast).
-5. **Session**: Session establishment, TLS handshake management.
-6. **Presentation**: Data formatting, SSL/TLS Encryption, Data compression.
-7. **Application**: HTTP, HTTPS, DNS, SSH, FTP, SMTP.
+### The OSI 7-Layer Reference Model
+1. **Layer 7 - Application**: HTTP, HTTPS, SSH, DNS.
+2. **Layer 4 - Transport**: TCP (reliable connection), UDP (fast datagrams).
+3. **Layer 3 - Network**: IPv4 / IPv6 logical addressing and routing.
+4. **Layer 2 - Data Link**: Ethernet MAC physical addresses.
 
----
-
-### The TCP 3-Way Handshake
-```
-Client                      Server
-  | --- SYN (Seq=X) --------> |
-  | <--- SYN-ACK (Seq=Y,Ack=X+1) --- |
-  | --- ACK (Ack=Y+1) -------> |
-```
-- **SYN**: Client requests connection initialization.
-- **SYN-ACK**: Server acknowledges and sends its own SYN.
-- **ACK**: Client acknowledges server's SYN; TCP connection established.
+### TCP 3-Way Handshake
+1. Client sends `SYN` (Synchronize).
+2. Server responds with `SYN-ACK` (Synchronize-Acknowledge).
+3. Client sends `ACK` (Acknowledge). Connection established.
 MD,
                         'quiz' => [
                             [
-                                'question' => 'What is the correct sequence of packets in the TCP 3-way handshake?',
-                                'options' => ['ACK, SYN, SYN-ACK', 'SYN, SYN-ACK, ACK', 'SYN, ACK, FIN', 'CONNECT, ACCEPT, CONFIRM'],
+                                'question' => 'What is the correct sequence of packets in a standard TCP 3-Way Handshake?',
+                                'options' => ['ACK, SYN, SYN-ACK', 'SYN, SYN-ACK, ACK', 'SYN, ACK, FIN', 'CONNECT, ACCEPT, READY'],
                                 'correct' => 1,
-                                'explanation' => 'The handshake starts with SYN, server responds SYN-ACK, and client finishes with ACK.',
+                                'explanation' => 'TCP connection sequence: SYN -> SYN-ACK -> ACK.',
                             ]
                         ]
                     ]
@@ -152,6 +109,8 @@ MD,
                 'title' => 'Linux System Administration & Command Line Security',
                 'desc' => 'Linux shell commands, file permissions, SSH hardening, and log analysis.',
                 'video_url' => 'https://www.youtube.com/watch?v=wBp0Rb-ZJak',
+                'pdf_url' => 'https://uwaterloo.ca/information-systems-technology/sites/ca.information-systems-technology/files/uploads/files/linux_cheat_sheet.pdf',
+                'pdf_title' => 'Linux Command Line Security & Administration Cheat Sheet.pdf',
                 'lessons' => [
                     [
                         'title' => 'Essential Linux Commands & File Permission Model',
@@ -200,6 +159,7 @@ MD,
                 );
             }
 
+            // Video resource
             LearningResource::updateOrCreate(
                 ['module_id' => $module->id, 'title' => "{$modData['title']} — Video Lecture"],
                 [
@@ -209,6 +169,19 @@ MD,
                     'description' => "Full video lecture covering {$modData['title']}.",
                     'is_required' => true,
                     'duration_minutes' => 25,
+                ]
+            );
+
+            // Downloadable PDF reading resource
+            LearningResource::updateOrCreate(
+                ['module_id' => $module->id, 'title' => $modData['pdf_title']],
+                [
+                    'course_id' => $cyberCourse->id,
+                    'type' => 'pdf',
+                    'url' => $modData['pdf_url'],
+                    'description' => "Official PDF study guide and reference document for {$modData['title']}.",
+                    'is_required' => false,
+                    'duration_minutes' => 45,
                 ]
             );
         }
@@ -232,6 +205,8 @@ MD,
                 'title' => 'Database Fundamentals & Relational Schema Design',
                 'desc' => 'RDBMS architecture, MySQL storage engines (InnoDB vs MyISAM), data types, and primary keys.',
                 'video_url' => 'https://www.youtube.com/watch?v=7S_tz1z_5bA',
+                'pdf_url' => 'https://dev.mysql.com/doc/refman/8.0/en/innodb-storage-engine.html',
+                'pdf_title' => 'MySQL 8.0 Reference Manual — InnoDB Engine & Schema Design Guide.pdf',
                 'lessons' => [
                     [
                         'title' => 'Relational Database Concepts & Data Types',
@@ -246,6 +221,34 @@ MD,
                                 'options' => ['MyISAM', 'Memory', 'InnoDB', 'CSV'],
                                 'correct' => 2,
                                 'explanation' => 'InnoDB is the default MySQL engine supporting transactions and referential integrity.',
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            [
+                'title' => 'DML & Advanced SELECT Queries',
+                'desc' => 'INSERT, UPDATE, DELETE, TRUNCATE, filtering, sorting, aggregations, and GROUP BY clauses.',
+                'video_url' => 'https://www.youtube.com/watch?v=HXV3zeQKqGY',
+                'pdf_url' => 'https://downloads.mysql.com/docs/apis-php-en.pdf',
+                'pdf_title' => 'SQL DML Queries, Aggregations & Grouping Reference Manual.pdf',
+                'lessons' => [
+                    [
+                        'title' => 'SQL Query Execution & Aggregate Functions',
+                        'content' => <<<'MD'
+# Data Manipulation Language (DML) & SELECT Queries
+
+### Aggregate Functions & Filtering
+- `COUNT()`: Counts total rows.
+- `AVG()`: Calculates average value.
+- `HAVING`: Filters grouped results post `GROUP BY`.
+MD,
+                        'quiz' => [
+                            [
+                                'question' => 'Which SQL clause filters aggregate calculation results AFTER `GROUP BY`?',
+                                'options' => ['WHERE', 'HAVING', 'ORDER BY', 'LIMIT'],
+                                'correct' => 1,
+                                'explanation' => 'HAVING filters aggregate values calculated by GROUP BY.',
                             ]
                         ]
                     ]
@@ -271,6 +274,7 @@ MD,
                 );
             }
 
+            // Video resource
             LearningResource::updateOrCreate(
                 ['module_id' => $module->id, 'title' => "{$modData['title']} — Video Lecture"],
                 [
@@ -282,15 +286,27 @@ MD,
                     'duration_minutes' => 25,
                 ]
             );
+
+            // PDF resource
+            LearningResource::updateOrCreate(
+                ['module_id' => $module->id, 'title' => $modData['pdf_title']],
+                [
+                    'course_id' => $mysqlCourse->id,
+                    'type' => 'pdf',
+                    'url' => $modData['pdf_url'],
+                    'description' => "Downloadable PDF reading guide for {$modData['title']}.",
+                    'is_required' => false,
+                    'duration_minutes' => 40,
+                ]
+            );
         }
 
-        // Enroll interns in courses
+        // Enroll all interns
         foreach ($interns as $internUser) {
             CourseEnrollment::firstOrCreate(
                 ['user_id' => $internUser->id, 'course_id' => $cyberCourse->id],
                 ['enrolled_by' => $admin->id, 'enrolled_at' => now()]
             );
-
             CourseEnrollment::firstOrCreate(
                 ['user_id' => $internUser->id, 'course_id' => $mysqlCourse->id],
                 ['enrolled_by' => $admin->id, 'enrolled_at' => now()]

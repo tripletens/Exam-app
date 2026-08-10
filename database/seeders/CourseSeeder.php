@@ -5,12 +5,8 @@ namespace Database\Seeders;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\CourseModule;
-use App\Models\Exam;
-use App\Models\ExamAssignment;
 use App\Models\Lesson;
 use App\Models\LearningResource;
-use App\Models\Question;
-use App\Models\QuestionOption;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -20,7 +16,6 @@ class CourseSeeder extends Seeder
     {
         $admin = User::where('email', 'admin@lythub.com')->first();
         $interns = User::where('role', 'intern')->get();
-        $sampleIntern = User::where('email', 'intern@lythub.com')->first();
 
         // ─── Course 1: Cybersecurity Fundamentals ───────────────────────────────
         $cyberCourse = Course::updateOrCreate(
@@ -218,24 +213,6 @@ MD,
             );
         }
 
-        // Cybersecurity Exam
-        $cyberExam = Exam::updateOrCreate(
-            ['title' => 'Cybersecurity Fundamentals Assessment'],
-            [
-                'course_id' => $cyberCourse->id,
-                'created_by' => $admin->id,
-                'description' => 'Test your understanding of core cybersecurity concepts, network security, Linux administration, and OWASP Top 10.',
-                'duration_minutes' => 30,
-                'pass_percentage' => 70,
-                'max_attempts' => 5,
-                'randomize_questions' => true,
-                'randomize_answers' => true,
-                'show_results_immediately' => true,
-                'status' => 'published',
-            ]
-        );
-        $this->seedCyberQuestions($cyberExam);
-
         // ─── Course 2: MySQL Fundamentals ───────────────────────────────────────
         $mysqlCourse = Course::updateOrCreate(
             ['slug' => 'mysql-fundamentals'],
@@ -293,61 +270,21 @@ MD,
                     ]
                 );
             }
+
+            LearningResource::updateOrCreate(
+                ['module_id' => $module->id, 'title' => "{$modData['title']} — Video Lecture"],
+                [
+                    'course_id' => $mysqlCourse->id,
+                    'type' => 'youtube',
+                    'url' => $modData['video_url'],
+                    'description' => "Full video lecture covering {$modData['title']}.",
+                    'is_required' => true,
+                    'duration_minutes' => 25,
+                ]
+            );
         }
 
-        // MySQL Exam
-        $mysqlExam = Exam::updateOrCreate(
-            ['title' => 'MySQL Fundamentals Assessment'],
-            [
-                'course_id' => $mysqlCourse->id,
-                'created_by' => $admin->id,
-                'description' => 'Assess your knowledge of MySQL from DDL/DML to JOINs, B-Tree indexes, transactions, and security.',
-                'duration_minutes' => 30,
-                'pass_percentage' => 70,
-                'max_attempts' => 5,
-                'randomize_questions' => true,
-                'randomize_answers' => true,
-                'show_results_immediately' => true,
-                'status' => 'published',
-            ]
-        );
-        $this->seedMysqlQuestions($mysqlExam);
-
-        // ─── Standalone Exam 1: Linux & Server Security Exam ──────────────────
-        $linuxExam = Exam::updateOrCreate(
-            ['title' => 'Linux CLI & Server Security Certification Exam'],
-            [
-                'created_by' => $admin->id,
-                'description' => 'Comprehensive exam evaluating Linux CLI skills, SSH hardening, file permissions, and system log analysis.',
-                'duration_minutes' => 45,
-                'pass_percentage' => 75,
-                'max_attempts' => 3,
-                'randomize_questions' => true,
-                'randomize_answers' => true,
-                'show_results_immediately' => true,
-                'status' => 'published',
-            ]
-        );
-        $this->seedLinuxQuestions($linuxExam);
-
-        // ─── Standalone Exam 2: OWASP Web Security Challenge ─────────────────
-        $owaspExam = Exam::updateOrCreate(
-            ['title' => 'OWASP Top 10 Web Application Security Challenge'],
-            [
-                'created_by' => $admin->id,
-                'description' => 'Advanced assessment covering Broken Access Control, SQL Injection, XSS, CSRF, and secure coding practices.',
-                'duration_minutes' => 40,
-                'pass_percentage' => 70,
-                'max_attempts' => 3,
-                'randomize_questions' => true,
-                'randomize_answers' => true,
-                'show_results_immediately' => true,
-                'status' => 'published',
-            ]
-        );
-        $this->seedOwaspQuestions($owaspExam);
-
-        // ─── Enroll & Assign to Interns ────────────────────────────────────────
+        // Enroll interns in courses
         foreach ($interns as $internUser) {
             CourseEnrollment::firstOrCreate(
                 ['user_id' => $internUser->id, 'course_id' => $cyberCourse->id],
@@ -358,138 +295,6 @@ MD,
                 ['user_id' => $internUser->id, 'course_id' => $mysqlCourse->id],
                 ['enrolled_by' => $admin->id, 'enrolled_at' => now()]
             );
-
-            // Assign ALL exams explicitly to every intern
-            foreach ([$cyberExam, $mysqlExam, $linuxExam, $owaspExam] as $ex) {
-                ExamAssignment::firstOrCreate(
-                    ['exam_id' => $ex->id, 'user_id' => $internUser->id],
-                    ['assigned_by' => $admin->id, 'assigned_at' => now()]
-                );
-            }
-        }
-    }
-
-    private function seedCyberQuestions(Exam $exam): void
-    {
-        $questions = [
-            ['What does CIA stand for in cybersecurity?', ['Control, Integrity, Access', 'Confidentiality, Integrity, Availability', 'Compliance, Identity, Authorization', 'Central Intelligence Agency'], 1, 'CIA Triad: Confidentiality, Integrity, Availability — the three pillars of information security.'],
-            ['Which layer of the OSI model handles IP addressing?', ['Layer 2 — Data Link', 'Layer 3 — Network', 'Layer 4 — Transport', 'Layer 7 — Application'], 1, 'The Network layer (Layer 3) is responsible for logical addressing and routing using IP.'],
-            ['What is the purpose of a firewall?', ['To speed up network traffic', 'To monitor and control incoming/outgoing traffic', 'To encrypt data at rest', 'To assign IP addresses'], 1, 'A firewall monitors and controls network traffic based on predefined security rules.'],
-            ['Which OWASP risk involves running malicious scripts in a browser?', ['SQL Injection', 'Cross-Site Scripting (XSS)', 'CSRF', 'Broken Authentication'], 1, 'XSS injects client-side scripts into web pages viewed by other users.'],
-            ['What hashing algorithm is recommended for passwords?', ['MD5', 'SHA-1', 'bcrypt', 'Base64'], 2, 'bcrypt is a slow hashing algorithm designed for passwords. MD5 and SHA-1 are too fast and vulnerable.'],
-        ];
-
-        foreach ($questions as $i => [$qText, $options, $correctIdx, $explanation]) {
-            if ($exam->questions()->where('question_text', $qText)->exists()) continue;
-            $q = Question::create([
-                'exam_id' => $exam->id,
-                'question_text' => $qText,
-                'type' => 'mcq',
-                'marks' => 10,
-                'difficulty' => 'medium',
-                'explanation' => $explanation,
-                'order' => $i + 1,
-            ]);
-            foreach ($options as $j => $optText) {
-                QuestionOption::create([
-                    'question_id' => $q->id,
-                    'option_text' => $optText,
-                    'is_correct' => $j === $correctIdx,
-                    'order' => $j,
-                ]);
-            }
-        }
-    }
-
-    private function seedMysqlQuestions(Exam $exam): void
-    {
-        $questions = [
-            ['What does SQL stand for?', ['Structured Question Language', 'Structured Query Language', 'Simple Query Logic', 'Standard Query Lookup'], 1, 'SQL stands for Structured Query Language — used to communicate with databases.'],
-            ['Which SQL statement retrieves data from a table?', ['INSERT', 'UPDATE', 'SELECT', 'DELETE'], 2, 'SELECT is used to query and retrieve data from one or more tables.'],
-            ['What does a PRIMARY KEY constraint do?', ['Allows NULL values', 'Uniquely identifies each row, cannot be NULL', 'Creates an index automatically only', 'Links two tables'], 1, 'A PRIMARY KEY uniquely identifies each row in a table and cannot contain NULL values.'],
-            ['Which JOIN returns only matching rows from both tables?', ['LEFT JOIN', 'RIGHT JOIN', 'INNER JOIN', 'FULL OUTER JOIN'], 2, 'INNER JOIN returns only rows where there is a match in both tables.'],
-            ['What does GROUP BY do?', ['Sorts results', 'Groups rows sharing a value for use with aggregate functions', 'Filters results', 'Joins tables'], 1, 'GROUP BY groups rows with the same values in specified columns, enabling aggregate functions like COUNT, SUM, AVG.'],
-        ];
-
-        foreach ($questions as $i => [$qText, $options, $correctIdx, $explanation]) {
-            if ($exam->questions()->where('question_text', $qText)->exists()) continue;
-            $q = Question::create([
-                'exam_id' => $exam->id,
-                'question_text' => $qText,
-                'type' => 'mcq',
-                'marks' => 10,
-                'difficulty' => 'medium',
-                'explanation' => $explanation,
-                'order' => $i + 1,
-            ]);
-            foreach ($options as $j => $optText) {
-                QuestionOption::create([
-                    'question_id' => $q->id,
-                    'option_text' => $optText,
-                    'is_correct' => $j === $correctIdx,
-                    'order' => $j,
-                ]);
-            }
-        }
-    }
-
-    private function seedLinuxQuestions(Exam $exam): void
-    {
-        $questions = [
-            ['Which command changes file permissions in Linux?', ['chown', 'chmod', 'chgrp', 'ps'], 1, 'chmod (change mode) modifies file access permissions.'],
-            ['Where are Linux user password hashes stored securely?', ['/etc/passwd', '/etc/shadow', '/var/log/auth.log', '/usr/bin/passwd'], 1, '/etc/shadow stores encrypted password hashes readable only by root.'],
-            ['Which SSH directive disables password-based authentication?', ['PermitRootLogin no', 'PasswordAuthentication no', 'AllowUsers none', 'PubkeyAuthentication false'], 1, 'PasswordAuthentication no forces SSH key-based authentication.'],
-        ];
-
-        foreach ($questions as $i => [$qText, $options, $correctIdx, $explanation]) {
-            if ($exam->questions()->where('question_text', $qText)->exists()) continue;
-            $q = Question::create([
-                'exam_id' => $exam->id,
-                'question_text' => $qText,
-                'type' => 'mcq',
-                'marks' => 10,
-                'difficulty' => 'medium',
-                'explanation' => $explanation,
-                'order' => $i + 1,
-            ]);
-            foreach ($options as $j => $optText) {
-                QuestionOption::create([
-                    'question_id' => $q->id,
-                    'option_text' => $optText,
-                    'is_correct' => $j === $correctIdx,
-                    'order' => $j,
-                ]);
-            }
-        }
-    }
-
-    private function seedOwaspQuestions(Exam $exam): void
-    {
-        $questions = [
-            ['Which vulnerability occurs when user input is concatenated directly into SQL queries?', ['Cross-Site Scripting', 'SQL Injection', 'Insecure Deserialization', 'SSRF'], 1, 'SQL Injection occurs when untrusted input alters database query structure.'],
-            ['What is the best defense against SQL Injection?', ['Escaping special characters only', 'Prepared Statements with Parameter Bindings', 'Client-side JavaScript validation', 'Web Application Firewall only'], 1, 'Prepared statements separate SQL syntax from parameters, neutralizing injection attacks.'],
-            ['What attack involves tricking a server into sending HTTP requests to internal or external systems?', ['CSRF', 'SSRF (Server-Side Request Forgery)', 'XSS', 'IDOR'], 1, 'SSRF forces a web server to make unauthorized requests to internal or external infrastructure.'],
-        ];
-
-        foreach ($questions as $i => [$qText, $options, $correctIdx, $explanation]) {
-            if ($exam->questions()->where('question_text', $qText)->exists()) continue;
-            $q = Question::create([
-                'exam_id' => $exam->id,
-                'question_text' => $qText,
-                'type' => 'mcq',
-                'marks' => 10,
-                'difficulty' => 'medium',
-                'explanation' => $explanation,
-                'order' => $i + 1,
-            ]);
-            foreach ($options as $j => $optText) {
-                QuestionOption::create([
-                    'question_id' => $q->id,
-                    'option_text' => $optText,
-                    'is_correct' => $j === $correctIdx,
-                    'order' => $j,
-                ]);
-            }
         }
     }
 }

@@ -51,13 +51,21 @@ class ExamAttempt extends Model
 
     public function isExpired(): bool
     {
-        return now()->gt($this->started_at->addMinutes($this->exam->duration_minutes));
+        if ($this->isSubmitted()) {
+            return false;
+        }
+        return $this->time_remaining_in_seconds <= 0;
     }
 
     public function getTimeRemainingInSecondsAttribute(): int
     {
-        $deadline = $this->started_at->addMinutes($this->exam->duration_minutes);
-        $remaining = now()->diffInSeconds($deadline, false);
-        return max(0, (int) $remaining);
+        if ($this->isSubmitted() || !$this->started_at) {
+            return 0;
+        }
+        $duration = $this->exam ? (int) $this->exam->duration_minutes : 120;
+        $endTime = $this->started_at->copy()->addMinutes($duration)->timestamp;
+        $now = now()->timestamp;
+        $remaining = $endTime - $now;
+        return max(0, $remaining);
     }
 }

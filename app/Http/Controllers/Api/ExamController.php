@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\CourseEnrollment;
 use App\Models\Exam;
 use App\Models\ExamAssignment;
 use Illuminate\Http\JsonResponse;
@@ -18,8 +19,15 @@ class ExamController extends BaseApiController
             ->latest();
 
         if (auth()->user()->isIntern()) {
-            $assignedIds = ExamAssignment::where('user_id', auth()->id())->pluck('exam_id');
-            $query->whereIn('id', $assignedIds)->where('status', 'published');
+            $user = auth()->user();
+            $assignedIds = ExamAssignment::where('user_id', $user->id)->pluck('exam_id');
+            $enrolledCourseIds = CourseEnrollment::where('user_id', $user->id)->pluck('course_id');
+
+            $query->where(function ($q) use ($assignedIds, $enrolledCourseIds) {
+                $q->whereIn('id', $assignedIds)
+                  ->orWhereIn('course_id', $enrolledCourseIds)
+                  ->orWhereNull('course_id'); // Also include global published standalone exams
+            })->where('status', 'published');
         }
 
         return $this->paginated($query->paginate(15));

@@ -1,0 +1,45 @@
+services:
+  - type: web
+    name: exam-app
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        generateFilter: true
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        fromDatabase:
+          name: exam-app-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: exam-app-db
+          property: port
+      - key: DB_DATABASE
+        fromDatabase:
+          name: exam-app-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: exam-app-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: exam-app-db
+          property: password
+
+databases:
+  - name: exam-app-db
+    databaseName: exam_app
+    user: exam_user
+    plan: free
+    region: oregon

@@ -215,7 +215,7 @@ export default function MyExams() {
   useEffect(() => {
     const fetchExams = async () => {
       try {
-        const res = await api.get('/api/exams');
+        const res = await api.get('/exams');
         setExams(res.data?.data || res.data || []);
       } catch (err) {
         toast.error(err?.response?.data?.message || 'Failed to load exams.');

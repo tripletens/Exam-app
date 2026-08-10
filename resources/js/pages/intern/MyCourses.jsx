@@ -168,7 +168,7 @@ export default function MyCourses() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await api.get('/api/courses');
+        const res = await api.get('/courses');
         setCourses(res.data?.data || res.data || []);
       } catch (err) {
         toast.error(err?.response?.data?.message || 'Failed to load courses.');

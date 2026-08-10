@@ -125,7 +125,7 @@ export default function InternDashboard() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await api.get('/api/dashboard/intern');
+        const res = await api.get('/dashboard/intern');
         setData(res.data);
       } catch (err) {
         toast.error(

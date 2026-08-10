@@ -79,7 +79,7 @@ export default function ExamInstructions() {
   useEffect(() => {
     const fetchExam = async () => {
       try {
-        const res = await api.get(`/api/exams/${id}`);
+        const res = await api.get(`/exams/${id}`);
         setExam(res.data?.data || res.data);
       } catch (err) {
         toast.error(err?.response?.data?.message || 'Failed to load exam details.');
@@ -97,7 +97,7 @@ export default function ExamInstructions() {
     }
     setStarting(true);
     try {
-      const res = await api.post(`/api/exams/${id}/start`);
+      const res = await api.post(`/exams/${id}/start`);
       const attemptId = res.data?.attempt_id || res.data?.data?.id || res.data?.id;
       if (!attemptId) {
         throw new Error('No attempt ID returned from server.');

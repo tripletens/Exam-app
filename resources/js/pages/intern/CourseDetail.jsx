@@ -57,7 +57,7 @@ export default function CourseDetail() {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        const res = await api.get(`/api/courses/${id}`);
+        const res = await api.get(`/courses/${id}`);
         const data = res.data?.data || res.data;
         setCourse(data);
 
@@ -99,7 +99,7 @@ export default function CourseDetail() {
       if (lesson.completed || completing === lesson.id) return;
       setCompleting(lesson.id);
       try {
-        await api.post(`/api/lessons/${lesson.id}/complete`);
+        await api.post(`/lessons/${lesson.id}/complete`);
         // Update local state
         setCourse((prev) => {
           if (!prev) return prev;

@@ -106,16 +106,6 @@ export default function Login() {
                             ) : 'Sign In'}
                         </button>
                     </form>
-
-                    {/* Demo credentials */}
-                    <div className="mt-6 p-4 bg-gray-800/60 rounded-xl border border-gray-700">
-                        <p className="text-xs font-medium text-gray-400 mb-2">Demo Credentials</p>
-                        <div className="space-y-1 text-xs text-gray-500 font-mono">
-                            <p>Admin: admin@lythub.com</p>
-                            <p>Intern: intern@lythub.com</p>
-                            <p>Password: Password@123</p>
-                        </div>
-                    </div>
                 </div>
 
                 <p className="text-center text-xs text-gray-600 mt-6">

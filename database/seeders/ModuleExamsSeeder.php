@@ -213,8 +213,11 @@ MD,
                 ]
             );
 
-            // Seed 50 Questions for this module exam
-            $this->seed50ModuleQuestions($exam, $module->title);
+            // Clear old dummy questions if re-seeding
+            $exam->questions()->delete();
+
+            // Seed 50 realistic questions for this module exam
+            $this->seed50RealisticQuestions($exam, $module->title);
 
             // Assign to all interns
             foreach ($interns as $internUser) {
@@ -226,38 +229,129 @@ MD,
         }
     }
 
-    private function seed50ModuleQuestions(Exam $exam, string $moduleTitle): void
+    private function seed50RealisticQuestions(Exam $exam, string $moduleTitle): void
     {
+        $pool = $this->getQuestionPoolForModule($moduleTitle);
+
         for ($i = 1; $i <= 50; $i++) {
-            $qText = "Question {$i}: {$moduleTitle} Concept Check {$i}";
-            if ($exam->questions()->where('question_text', $qText)->exists()) continue;
+            $qData = $pool[($i - 1) % count($pool)];
+
+            $questionText = ($i > count($pool))
+                ? "[Part " . ceil($i / count($pool)) . "] {$qData['question']}"
+                : $qData['question'];
 
             $q = Question::create([
                 'exam_id' => $exam->id,
-                'question_text' => "{$moduleTitle} — Technical Question {$i}: Which option correctly demonstrates principle #{$i} of {$moduleTitle}?",
+                'question_text' => $questionText,
                 'type' => 'mcq',
                 'marks' => 2, // 50 Qs x 2 marks = 100 Marks
                 'difficulty' => ($i % 3 === 0) ? 'hard' : (($i % 2 === 0) ? 'medium' : 'easy'),
-                'explanation' => "Detailed technical explanation for Question {$i} regarding {$moduleTitle}.",
+                'explanation' => $qData['explanation'],
                 'order' => $i,
             ]);
 
-            $correctIdx = ($i % 4);
-            $options = [
-                "Option A for Question {$i} in {$moduleTitle}",
-                "Option B for Question {$i} in {$moduleTitle}",
-                "Option C for Question {$i} in {$moduleTitle}",
-                "Option D for Question {$i} in {$moduleTitle}",
-            ];
-
-            foreach ($options as $j => $optText) {
+            foreach ($qData['options'] as $j => $optText) {
                 QuestionOption::create([
                     'question_id' => $q->id,
                     'option_text' => $optText,
-                    'is_correct' => ($j === $correctIdx),
+                    'is_correct' => ($j === $qData['correct']),
                     'order' => $j,
                 ]);
             }
         }
+    }
+
+    private function getQuestionPoolForModule(string $title): array
+    {
+        $lower = strtolower($title);
+
+        if (str_contains($lower, 'cybersecurity') || str_contains($lower, 'cia')) {
+            return [
+                ['question' => 'What does the "C" in the CIA Triad represent?', 'options' => ['Control', 'Confidentiality', 'Compliance', 'Centralization'], 'correct' => 1, 'explanation' => 'Confidentiality ensures sensitive data is accessible only to authorized users.'],
+                ['question' => 'Which security mechanism guarantees data Integrity?', 'options' => ['Firewalls', 'AES-256 Encryption', 'SHA-256 Cryptographic Hashing', 'Load Balancers'], 'correct' => 2, 'explanation' => 'SHA-256 generates a unique checksum; any alteration changes the hash value.'],
+                ['question' => 'What is the primary objective of Defense-in-Depth?', 'options' => ['To eliminate all threats', 'To deploy layered security controls so if one fails, others protect the system', 'To reduce infrastructure costs', 'To enforce 30-day password rotations'], 'correct' => 1, 'explanation' => 'Defense-in-Depth uses overlapping security layers to protect critical assets.'],
+                ['question' => 'Which risk strategy involves purchasing a cyber insurance policy?', 'options' => ['Risk Avoidance', 'Risk Mitigation', 'Risk Transference', 'Risk Acceptance'], 'correct' => 2, 'explanation' => 'Cyber insurance transfers potential financial risk to an insurer.'],
+                ['question' => 'Which hashing algorithm is specifically designed for password hashing?', 'options' => ['MD5', 'SHA-1', 'bcrypt', 'CRC32'], 'correct' => 2, 'explanation' => 'bcrypt includes salt and cost factors to resist hardware brute-force attacks.'],
+                ['question' => 'Which attack category tricks high-level executives specifically?', 'options' => ['Whaling', 'Vishing', 'Smishing', 'Baiting'], 'correct' => 0, 'explanation' => 'Whaling targets senior executives directly.'],
+                ['question' => 'What does Multi-Factor Authentication (MFA) require?', 'options' => ['Two identical passwords', 'Two or more independent authentication factors', 'Logging in from two browsers', 'Changing passwords monthly'], 'correct' => 1, 'explanation' => 'MFA combines something you know, have, or are.'],
+                ['question' => 'Which NIST CSF core function restores operations after a security incident?', 'options' => ['Identify', 'Protect', 'Respond', 'Recover'], 'correct' => 3, 'explanation' => 'Recover restores services and systems following an incident.'],
+                ['question' => 'What type of malware encrypts victim files and demands payment for key recovery?', 'options' => ['Spyware', 'Ransomware', 'Adware', 'Rootkit'], 'correct' => 1, 'explanation' => 'Ransomware encrypts target data and demands ransom.'],
+                ['question' => 'Which access control model enforces access based on user security clearances and data classification labels?', 'options' => ['DAC (Discretionary Access Control)', 'MAC (Mandatory Access Control)', 'RBAC (Role-Based Access Control)', 'ABAC'], 'correct' => 1, 'explanation' => 'MAC uses strict security clearances and classification labels.'],
+            ];
+        }
+
+        if (str_contains($lower, 'network') || str_contains($lower, 'tcp')) {
+            return [
+                ['question' => 'At which OSI layer do IPv4 and IPv6 routers operate?', 'options' => ['Layer 2 — Data Link', 'Layer 3 — Network', 'Layer 4 — Transport', 'Layer 7 — Application'], 'correct' => 1, 'explanation' => 'Layer 3 Network layer handles IP routing and logical addressing.'],
+                ['question' => 'What is the correct sequence of packets in a TCP 3-Way Handshake?', 'options' => ['ACK, SYN, SYN-ACK', 'SYN, SYN-ACK, ACK', 'SYN, ACK, FIN', 'CONNECT, ACCEPT, READY'], 'correct' => 1, 'explanation' => 'TCP connection sequence: SYN -> SYN-ACK -> ACK.'],
+                ['question' => 'Which DNS record maps a domain name to an IPv4 address?', 'options' => ['AAAA Record', 'MX Record', 'A Record', 'TXT Record'], 'correct' => 2, 'explanation' => 'A Record maps hostname to IPv4 address.'],
+                ['question' => 'Which Transport Layer protocol is connectionless and unacknowledged?', 'options' => ['TCP', 'UDP', 'SCTP', 'BGP'], 'correct' => 1, 'explanation' => 'UDP provides fast, unacknowledged datagram transmission.'],
+                ['question' => 'What subnet mask corresponds to a `/24` CIDR prefix?', 'options' => ['255.255.0.0', '255.255.255.0', '255.255.255.128', '255.0.0.0'], 'correct' => 1, 'explanation' => '/24 prefix equals 255.255.255.0.'],
+                ['question' => 'Which command traces hop-by-hop packet routes across networks?', 'options' => ['ping', 'traceroute / tracert', 'netstat', 'nslookup'], 'correct' => 1, 'explanation' => 'traceroute identifies router hops along the packet path.'],
+                ['question' => 'What attack corrupts DNS resolver caches with forged IP responses?', 'options' => ['DNS Cache Poisoning', 'SYN Flood', 'ARP Spoofing', 'BGP Hijacking'], 'correct' => 0, 'explanation' => 'DNS Cache Poisoning injects false DNS mappings.'],
+                ['question' => 'Which protocol encrypts web traffic over default port 443?', 'options' => ['HTTP', 'HTTPS (TLS/SSL)', 'SSH', 'FTP'], 'correct' => 1, 'explanation' => 'HTTPS uses TLS encryption on port 443.'],
+                ['question' => 'What protocol translates IP addresses into hardware MAC addresses on a local Ethernet subnet?', 'options' => ['DNS', 'DHCP', 'ARP (Address Resolution Protocol)', 'ICMP'], 'correct' => 2, 'explanation' => 'ARP resolves IP addresses to Layer 2 MAC addresses.'],
+                ['question' => 'Which Wireshark display filter captures HTTP POST requests specifically?', 'options' => ['http.request.method == "POST"', 'tcp.port == 80', 'ip.addr == 127.0.0.1', 'dns.flags.response == 1'], 'correct' => 0, 'explanation' => 'http.request.method == "POST" filters HTTP POST packets.'],
+            ];
+        }
+
+        if (str_contains($lower, 'linux') || str_contains($lower, 'ssh') || str_contains($lower, 'cli')) {
+            return [
+                ['question' => 'What octal numeric value corresponds to `rwxr-xr--` file permissions in Linux?', 'options' => ['777', '754', '644', '755'], 'correct' => 1, 'explanation' => 'rwx (7), r-x (5), r-- (4) = 754.'],
+                ['question' => 'Which Linux file contains user UIDs, usernames, and default shells?', 'options' => ['/etc/shadow', '/etc/passwd', '/etc/group', '/var/log/auth.log'], 'correct' => 1, 'explanation' => '/etc/passwd lists local account details.'],
+                ['question' => 'Which command changes file user and group ownership in Linux?', 'options' => ['chmod', 'chown', 'chgrp', 'umask'], 'correct' => 1, 'explanation' => 'chown modifies file owner and group.'],
+                ['question' => 'In `/etc/ssh/sshd_config`, which setting disables password authentication?', 'options' => ['PermitRootLogin no', 'PasswordAuthentication no', 'AllowUsers none', 'PubkeyAuthentication no'], 'correct' => 1, 'explanation' => 'Setting `PasswordAuthentication no` forces public key authentication.'],
+                ['question' => 'Which command displays interactive real-time CPU and memory usage in Linux?', 'options' => ['ps -ef', 'top / htop', 'df -h', 'free -m'], 'correct' => 1, 'explanation' => 'top/htop monitors running processes and system resources live.'],
+                ['question' => 'Where are SSH authentication logs recorded on Ubuntu/Debian systems?', 'options' => ['/var/log/syslog', '/var/log/auth.log', '/var/log/nginx/access.log', '/etc/ssh/log'], 'correct' => 1, 'explanation' => '/var/log/auth.log logs SSH logins and authorization events.'],
+                ['question' => 'Which Linux command sets default file creation permission masks?', 'options' => ['chmod 600', 'umask', 'chown root', 'setfacl'], 'correct' => 1, 'explanation' => 'umask defines default initial permission masks.'],
+                ['question' => 'Which command searches files for lines matching a specified pattern?', 'options' => ['find', 'grep', 'awk', 'sed'], 'correct' => 1, 'explanation' => 'grep searches text files for regex pattern matches.'],
+                ['question' => 'What command displays disk space usage across mounted filesystems in human-readable format?', 'options' => ['du -sh', 'df -h', 'ls -la', 'fdisk -l'], 'correct' => 1, 'explanation' => 'df -h reports disk usage in megabytes/gigabytes.'],
+                ['question' => 'Which command gracefully terminates a running process by its PID?', 'options' => ['kill -9 <pid>', 'kill <pid>', 'stop <pid>', 'end <pid>'], 'correct' => 1, 'explanation' => 'kill <pid> sends default SIGTERM (15) allowing graceful cleanup.'],
+            ];
+        }
+
+        if (str_contains($lower, 'owasp') || str_contains($lower, 'web security') || str_contains($lower, 'sql injection')) {
+            return [
+                ['question' => 'Which OWASP Top 10 vulnerability currently holds the #1 ranking for web application risks?', 'options' => ['SQL Injection', 'Broken Access Control', 'Cryptographic Failures', 'SSRF'], 'correct' => 1, 'explanation' => 'Broken Access Control (A01) is ranked #1 by OWASP.'],
+                ['question' => 'What mechanism completely neutralizes SQL Injection vulnerabilities?', 'options' => ['Input sanitization regex only', 'Prepared Statements with Parameterized Queries', 'Web Application Firewall (WAF) only', 'Base64 encoding'], 'correct' => 1, 'explanation' => 'Prepared statements separate SQL code from user parameters.'],
+                ['question' => 'Changing URL parameter `/api/user/10` to `/api/user/11` to view private data is an example of:', 'options' => ['Cross-Site Scripting (XSS)', 'Insecure Direct Object Reference (IDOR)', 'CSRF', 'SQL Injection'], 'correct' => 1, 'explanation' => 'IDOR exposes direct internal object identifiers without access authorization checks.'],
+                ['question' => 'Which attack type injects malicious JavaScript into web pages viewed by other users?', 'options' => ['SQL Injection', 'Cross-Site Scripting (XSS)', 'CSRF', 'Command Injection'], 'correct' => 1, 'explanation' => 'XSS executes client-side scripts in victim browsers.'],
+                ['question' => 'What HTTP security header instructs browsers to communicate exclusively over HTTPS?', 'options' => ['Content-Security-Policy', 'HTTP Strict Transport Security (HSTS)', 'X-Frame-Options', 'X-Content-Type-Options'], 'correct' => 1, 'explanation' => 'HSTS enforces HTTPS connections for all browser requests.'],
+                ['question' => 'Which attack tricks an authenticated browser into submitting unauthorized requests to a web app?', 'options' => ['Cross-Site Request Forgery (CSRF)', 'XSS', 'SSRF', 'Directory Traversal'], 'correct' => 0, 'explanation' => 'CSRF exploits stored browser session cookies to execute unauthorized actions.'],
+                ['question' => 'Which HTTP response code indicates an unauthenticated request?', 'options' => ['400 Bad Request', '401 Unauthorized', '403 Forbidden', '404 Not Found'], 'correct' => 1, 'explanation' => '401 Unauthorized indicates missing or invalid authentication credentials.'],
+                ['question' => 'What does Server-Side Request Forgery (SSRF) allow an attacker to do?', 'options' => ['Execute browser scripts', 'Force the web server to make requests to internal or external systems', 'Dump database schemas', 'Modify local files'], 'correct' => 1, 'explanation' => 'SSRF forces the backend server to send requests to target endpoints.'],
+                ['question' => 'What HTTP header prevents clickjacking attacks by controlling iframe embedding?', 'options' => ['X-Frame-Options', 'HSTS', 'CORS', 'Content-Type'], 'correct' => 0, 'explanation' => 'X-Frame-Options restricts whether a page can be embedded inside an iframe.'],
+                ['question' => 'In Laravel, what mechanism provides automated protection against Cross-Site Request Forgery?', 'options' => ['Sanctum Token', 'CSRF Token Middleware (@csrf / X-CSRF-TOKEN)', 'Eloquent ORM', 'Blade Compiler'], 'correct' => 1, 'explanation' => 'Laravel verifies CSRF tokens on incoming POST/PUT/DELETE web requests.'],
+            ];
+        }
+
+        if (str_contains($lower, 'database') || str_contains($lower, 'mysql') || str_contains($lower, 'dml') || str_contains($lower, 'join') || str_contains($lower, 'index') || str_contains($lower, 'transaction')) {
+            return [
+                ['question' => 'Which default MySQL storage engine supports ACID transactions and foreign keys?', 'options' => ['MyISAM', 'Memory', 'InnoDB', 'CSV'], 'correct' => 2, 'explanation' => 'InnoDB is the default transaction-safe engine supporting foreign keys.'],
+                ['question' => 'Which SQL statement clears all rows from a table quickly and resets auto-increment counters?', 'options' => ['DELETE FROM table;', 'DROP TABLE table;', 'TRUNCATE TABLE table;', 'REMOVE TABLE table;'], 'correct' => 2, 'explanation' => 'TRUNCATE drops and recreates table structure, resetting auto-increment IDs.'],
+                ['question' => 'Which JOIN type returns all records from the left table and matching records from the right?', 'options' => ['INNER JOIN', 'LEFT JOIN (LEFT OUTER JOIN)', 'RIGHT JOIN', 'FULL JOIN'], 'correct' => 1, 'explanation' => 'LEFT JOIN returns all left-table rows, padding unmatched right columns with NULL.'],
+                ['question' => 'Which SQL clause filters aggregate calculation results AFTER `GROUP BY`?', 'options' => ['WHERE', 'HAVING', 'ORDER BY', 'LIMIT'], 'correct' => 1, 'explanation' => 'HAVING filters aggregate values calculated by GROUP BY.'],
+                ['question' => 'What constraint uniquely identifies each row in a table and cannot contain NULL values?', 'options' => ['FOREIGN KEY', 'UNIQUE', 'PRIMARY KEY', 'CHECK'], 'correct' => 2, 'explanation' => 'PRIMARY KEY uniquely identifies rows and forbids NULL values.'],
+                ['question' => 'How does a B-Tree index improve database query performance?', 'options' => ['By compressing disk data', 'By reducing lookup time complexity from O(N) to O(log N)', 'By caching results in memory', 'By bypassing foreign keys'], 'correct' => 1, 'explanation' => 'B-Tree indexes structure search keys in logarithmic time complexity O(log N).'],
+                ['question' => 'What does `type: ALL` indicate in a MySQL `EXPLAIN` query execution plan?', 'options' => ['An index lookup is used', 'A full table scan is occurring (inefficient query)', 'A primary key match occurred', 'Subquery execution'], 'correct' => 1, 'explanation' => '`type: ALL` means MySQL is forced to scan every row in the table.'],
+                ['question' => 'Which ACID property guarantees that all statements in a transaction complete or roll back as one unit?', 'options' => ['Atomicity', 'Consistency', 'Isolation', 'Durability'], 'correct' => 0, 'explanation' => 'Atomicity guarantees all-or-nothing execution.'],
+                ['question' => 'Which command utility exports a MySQL database to an SQL dump file?', 'options' => ['mysql-export', 'mysqldump', 'mysqladmin', 'db-backup'], 'correct' => 1, 'explanation' => 'mysqldump is the official command-line backup utility for MySQL.'],
+                ['question' => 'Which SQL privilege grants read-only access to query database records without altering them?', 'options' => ['ALL PRIVILEGES', 'INSERT', 'SELECT', 'UPDATE'], 'correct' => 2, 'explanation' => 'SELECT grants read-only permission to query records.'],
+            ];
+        }
+
+        // Default: Computer Science, Statistics & Mathematics
+        return [
+            ['question' => 'What is the average time complexity of a Binary Search algorithm on a sorted array of N elements?', 'options' => ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'], 'correct' => 1, 'explanation' => 'Binary Search divides the search space in half at each step, yielding O(log N).'],
+            ['question' => 'Which measure of central tendency is most robust against extreme statistical outliers?', 'options' => ['Arithmetic Mean', 'Median', 'Variance', 'Range'], 'correct' => 1, 'explanation' => 'The median takes the middle position of sorted data, preventing extreme outliers from skewing it.'],
+            ['question' => 'What is the output of `True XOR True` in Boolean logic algebra?', 'options' => ['True', 'False', 'Undefined', 'Null'], 'correct' => 1, 'explanation' => 'XOR returns True if and only if inputs differ. Since both are True, XOR returns False.'],
+            ['question' => 'According to the Empirical Rule (68-95-99.7), what percentage of data falls within 2 standard deviations of the mean in a Normal Distribution?', 'options' => ['50%', '68%', '95%', '99.7%'], 'correct' => 2, 'explanation' => 'The Empirical Rule states ~95% of data falls within 2 standard deviations of the mean.'],
+            ['question' => 'Which data structure operates on a Last In, First Out (LIFO) order?', 'options' => ['Queue', 'Stack', 'Array', 'Linked List'], 'correct' => 1, 'explanation' => 'Stacks use LIFO ordering (push and pop elements).'],
+            ['question' => 'What is the dot product of vectors A = [2, 3] and B = [4, 1]?', 'options' => ['5', '11', '14', '24'], 'correct' => 1, 'explanation' => '(2 * 4) + (3 * 1) = 8 + 3 = 11.'],
+            ['question' => 'What is the average time complexity for searching a key in a well-balanced Hash Map?', 'options' => ['O(1)', 'O(log N)', 'O(N)', 'O(N log N)'], 'correct' => 0, 'explanation' => 'Hash maps provide constant time O(1) average key lookups.'],
+            ['question' => 'What mathematical theorem calculates the probability of an event based on prior knowledge of conditions related to the event?', 'options' => ['Pythagorean Theorem', 'Bayes\' Theorem', 'Central Limit Theorem', 'Fermat\'s Last Theorem'], 'correct' => 1, 'explanation' => 'Bayes\' Theorem calculates conditional probability P(A|B) using prior probabilities.'],
+            ['question' => 'What sorting algorithm has a guaranteed worst-case time complexity of O(N log N)?', 'options' => ['QuickSort', 'MergeSort', 'BubbleSort', 'InsertionSort'], 'correct' => 1, 'explanation' => 'MergeSort divides arrays recursively and merges in O(N log N) time in all cases.'],
+            ['question' => 'Which gate output is True ONLY if both inputs are True?', 'options' => ['OR Gate', 'AND Gate', 'XOR Gate', 'NAND Gate'], 'correct' => 1, 'explanation' => 'AND gate outputs True strictly when both inputs evaluate to True.'],
+        ];
     }
 }

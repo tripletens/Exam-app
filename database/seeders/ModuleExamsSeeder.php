@@ -39,7 +39,7 @@ class ModuleExamsSeeder extends Seeder
             [
                 'title' => 'Computer Science Fundamentals & Algorithms',
                 'desc' => 'Binary representation, Big-O complexity analysis, arrays, stacks, queues, hash tables, trees, and sorting algorithms.',
-                'video_url' => 'https://www.youtube.com/watch?v=8hly31xKLI0',
+                'video_url' => 'https://www.youtube.com/watch?v=gT869wKjJ3w',
                 'pdf_url' => 'https://introcs.cs.princeton.edu/java/10paper/cs-intro.pdf',
                 'pdf_title' => 'Princeton CS — Algorithms & Data Structures Reading Manual.pdf',
                 'lessons' => [

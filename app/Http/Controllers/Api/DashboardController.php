@@ -25,9 +25,14 @@ class DashboardController extends BaseApiController
         $failedExams = ExamAttempt::whereNotNull('submitted_at')->where('passed', false)->count();
 
         // Monthly score trend (last 6 months)
+        $driver = config('database.default');
+        $dateFormatRaw = $driver === 'pgsql'
+            ? "TO_CHAR(submitted_at, 'YYYY-MM') as month, AVG(percentage) as avg_score, COUNT(*) as count"
+            : 'DATE_FORMAT(submitted_at, "%Y-%m") as month, AVG(percentage) as avg_score, COUNT(*) as count';
+
         $scoreTrend = ExamAttempt::whereNotNull('submitted_at')
             ->where('submitted_at', '>=', now()->subMonths(6))
-            ->selectRaw('DATE_FORMAT(submitted_at, "%Y-%m") as month, AVG(percentage) as avg_score, COUNT(*) as count')
+            ->selectRaw($dateFormatRaw)
             ->groupBy('month')
             ->orderBy('month')
             ->get();

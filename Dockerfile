@@ -34,4 +34,4 @@ COPY ./docker/nginx.conf /etc/nginx/http.d/default.conf
 
 EXPOSE 80
 
-CMD ["sh", "-c", "php artisan migrate --force && php artisan db:seed --force && nginx && php-fpm"]
+CMD ["sh", "-c", "php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force && nginx && php-fpm"]

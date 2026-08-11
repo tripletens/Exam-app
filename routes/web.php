@@ -10,6 +10,6 @@ use Illuminate\Support\Facades\Route;
 | React Router handles client-side routing from here.
 */
 
-Route::get('/{any}', function () {
+Route::get('/{any?}', function () {
     return view('app');
 })->where('any', '^(?!api).*$');

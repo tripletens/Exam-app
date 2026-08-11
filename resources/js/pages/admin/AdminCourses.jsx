@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { courseApi } from '../../api';
+import { courseApi, userApi } from '../../api';
 import { toast } from 'react-toastify';
-import { Plus, BookOpen, Loader2, Edit, Trash2, Search, Eye } from 'lucide-react';
+import { Plus, BookOpen, Loader2, Edit, Trash2, Search, Eye, UserPlus, Check } from 'lucide-react';
 
 const difficultyBadge = { beginner: 'badge-green', intermediate: 'badge-yellow', advanced: 'badge-red' };
 const statusBadge = { published: 'badge-green', draft: 'badge-gray', archived: 'badge-red' };
@@ -16,6 +16,14 @@ export default function AdminCourses() {
     const [form, setForm] = useState({ title: '', description: '', category: '', difficulty: 'beginner', status: 'draft', estimated_duration: '' });
     const [saving, setSaving] = useState(false);
 
+    // Enrollment Modal State
+    const [enrollCourse, setEnrollCourse] = useState(null);
+    const [interns, setInterns] = useState([]);
+    const [selectedInternIds, setSelectedInternIds] = useState([]);
+    const [internSearch, setInternSearch] = useState('');
+    const [loadingInterns, setLoadingInterns] = useState(false);
+    const [enrolling, setEnrolling] = useState(false);
+
     const load = (params = {}) => {
         setLoading(true);
         courseApi.list({ search, ...params })
@@ -28,6 +36,44 @@ export default function AdminCourses() {
 
     const openCreate = () => { setEditingCourse(null); setForm({ title: '', description: '', category: '', difficulty: 'beginner', status: 'draft', estimated_duration: '' }); setShowForm(true); };
     const openEdit = (c) => { setEditingCourse(c); setForm({ title: c.title, description: c.description || '', category: c.category || '', difficulty: c.difficulty?.value || c.difficulty || 'beginner', status: c.status?.value || c.status || 'draft', estimated_duration: c.estimated_duration || '' }); setShowForm(true); };
+
+    const openEnroll = async (c) => {
+        setEnrollCourse(c);
+        setSelectedInternIds([]);
+        setInternSearch('');
+        setLoadingInterns(true);
+        try {
+            const res = await userApi.list({ role: 'intern' });
+            setInterns(res.data.data || []);
+        } catch {
+            toast.error('Failed to load interns list');
+        } finally {
+            setLoadingInterns(false);
+        }
+    };
+
+    const handleEnrollSave = async (e) => {
+        e.preventDefault();
+        if (selectedInternIds.length === 0) return toast.error('Select at least one intern');
+        setEnrolling(true);
+        try {
+            await courseApi.enroll(enrollCourse.id, { user_ids: selectedInternIds });
+            toast.success(`Successfully enrolled ${selectedInternIds.length} intern(s)`);
+            setEnrollCourse(null);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Enrollment failed');
+        } finally {
+            setEnrolling(false);
+        }
+    };
+
+    const toggleSelectAllInterns = (filtered) => {
+        if (selectedInternIds.length === filtered.length) {
+            setSelectedInternIds([]);
+        } else {
+            setSelectedInternIds(filtered.map(i => i.id));
+        }
+    };
 
     const handleSave = async (e) => {
         e.preventDefault();
@@ -56,12 +102,17 @@ export default function AdminCourses() {
         } catch { toast.error('Delete failed'); }
     };
 
+    const filteredInterns = interns.filter(i =>
+        i.name?.toLowerCase().includes(internSearch.toLowerCase()) ||
+        i.email?.toLowerCase().includes(internSearch.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
             <div className="section-header">
                 <div>
                     <h1 className="page-title">Courses</h1>
-                    <p className="page-subtitle">Manage your training courses</p>
+                    <p className="page-subtitle">Manage your training courses and intern enrollments</p>
                 </div>
                 <button onClick={openCreate} className="btn-primary">
                     <Plus size={16} /> New Course
@@ -105,13 +156,16 @@ export default function AdminCourses() {
                                     <td><span className={`badge ${statusBadge[course.status?.value || course.status] || 'badge-gray'}`}>{course.status?.value || course.status}</span></td>
                                     <td>
                                         <div className="flex items-center gap-2">
+                                            <button onClick={() => openEnroll(course)} className="p-1.5 text-gray-400 hover:text-emerald-400 transition-colors" title="Enroll Interns">
+                                                <UserPlus size={15} />
+                                            </button>
                                             <Link to={`/admin/courses/${course.id}/modules`} className="p-1.5 text-gray-400 hover:text-cyan-400 transition-colors" title="View Modules">
                                                 <Eye size={15} />
                                             </Link>
-                                            <button onClick={() => openEdit(course)} className="p-1.5 text-gray-400 hover:text-indigo-400 transition-colors">
+                                            <button onClick={() => openEdit(course)} className="p-1.5 text-gray-400 hover:text-indigo-400 transition-colors" title="Edit Course">
                                                 <Edit size={15} />
                                             </button>
-                                            <button onClick={() => handleDelete(course.id)} className="p-1.5 text-gray-400 hover:text-red-400 transition-colors">
+                                            <button onClick={() => handleDelete(course.id)} className="p-1.5 text-gray-400 hover:text-red-400 transition-colors" title="Delete Course">
                                                 <Trash2 size={15} />
                                             </button>
                                         </div>
@@ -123,7 +177,7 @@ export default function AdminCourses() {
                 </div>
             )}
 
-            {/* Modal */}
+            {/* Create/Edit Course Modal */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-lg shadow-2xl">
@@ -158,6 +212,85 @@ export default function AdminCourses() {
                                     {editingCourse ? 'Save Changes' : 'Create Course'}
                                 </button>
                             </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ENROLL INTERNS MODAL */}
+            {enrollCourse && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-lg shadow-2xl space-y-4">
+                        <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                            <div>
+                                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                                    <UserPlus className="text-emerald-400" size={18} /> Enroll Interns in Course
+                                </h2>
+                                <p className="text-xs text-gray-400 mt-0.5">{enrollCourse.title}</p>
+                            </div>
+                            <span className="badge badge-indigo text-xs">{selectedInternIds.length} Selected</span>
+                        </div>
+
+                        {/* Search & Select All */}
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Filter interns by name or email..."
+                                    value={internSearch}
+                                    onChange={e => setInternSearch(e.target.value)}
+                                    className="input pl-8 py-1.5 text-xs"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => toggleSelectAllInterns(filteredInterns)}
+                                className="btn-secondary text-xs py-1.5"
+                            >
+                                {selectedInternIds.length === filteredInterns.length ? 'Deselect All' : 'Select All'}
+                            </button>
+                        </div>
+
+                        {/* Interns List */}
+                        {loadingInterns ? (
+                            <div className="flex justify-center py-8"><Loader2 className="animate-spin text-indigo-500" size={24} /></div>
+                        ) : (
+                            <div className="max-h-64 overflow-y-auto space-y-1.5 pr-1">
+                                {filteredInterns.length === 0 ? (
+                                    <div className="text-center py-6 text-gray-500 text-xs">No interns found.</div>
+                                ) : (
+                                    filteredInterns.map(intern => {
+                                        const isSelected = selectedInternIds.includes(intern.id);
+                                        return (
+                                            <div
+                                                key={intern.id}
+                                                onClick={() => {
+                                                    setSelectedInternIds(prev =>
+                                                        isSelected ? prev.filter(id => id !== intern.id) : [...prev, intern.id]
+                                                    );
+                                                }}
+                                                className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected ? 'bg-indigo-950/40 border-indigo-500 text-white' : 'bg-gray-950/40 border-gray-800/60 text-gray-400 hover:border-gray-700'}`}
+                                            >
+                                                <div>
+                                                    <div className="text-xs font-semibold text-white">{intern.name}</div>
+                                                    <div className="text-[11px] text-gray-500">{intern.email}</div>
+                                                </div>
+                                                <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${isSelected ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-gray-700 bg-gray-900'}`}>
+                                                    {isSelected && <Check size={12} />}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleEnrollSave} className="flex gap-3 justify-end pt-2 border-t border-gray-800">
+                            <button type="button" onClick={() => setEnrollCourse(null)} className="btn-secondary">Cancel</button>
+                            <button type="submit" disabled={enrolling || selectedInternIds.length === 0} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-medium rounded-xl transition-all shadow-lg shadow-emerald-600/30 flex items-center gap-1.5">
+                                {enrolling ? <Loader2 size={14} className="animate-spin" /> : <UserPlus size={14} />} Enroll ({selectedInternIds.length})
+                            </button>
                         </form>
                     </div>
                 </div>

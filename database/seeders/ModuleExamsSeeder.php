@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Certificate;
 use App\Models\Course;
 use App\Models\CourseEnrollment;
 use App\Models\CourseModule;
@@ -13,6 +14,7 @@ use App\Models\Question;
 use App\Models\QuestionOption;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ModuleExamsSeeder extends Seeder
 {
@@ -247,6 +249,20 @@ MD,
                     ['assigned_by' => $admin->id, 'assigned_at' => now()]
                 );
             }
+        }
+
+        // ─── Seed Official Certificates for Interns ───
+        $allCourses = Course::all();
+        foreach ($interns as $index => $internUser) {
+            $assignedCourse = $allCourses[$index % count($allCourses)];
+            Certificate::firstOrCreate(
+                ['user_id' => $internUser->id, 'course_id' => $assignedCourse->id],
+                [
+                    'certificate_number' => 'LYT-CERT-' . strtoupper(Str::random(8)),
+                    'issued_by' => $admin->id,
+                    'issued_at' => now()->subDays(rand(1, 15)),
+                ]
+            );
         }
     }
 }

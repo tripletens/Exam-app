@@ -17,80 +17,81 @@
             font-family: 'DejaVu Serif', 'Georgia', serif;
             color: #F8FAFC;
         }
-        .wrapper-table {
+        .cert-table {
             width: 100%;
-            height: 570px;
+            height: 100%;
             border-collapse: collapse;
             table-layout: fixed;
         }
-        .outer-border-cell {
-            padding: 10px;
+        .cert-cell {
+            padding: 10mm 14mm;
             vertical-align: middle;
         }
-        .outer-box {
+        .outer-border {
             border: 3px solid #D4AF37;
-            padding: 6px;
+            padding: 5px;
             background-color: #070D1B;
         }
-        .inner-border-box {
+        .inner-border {
             border: 1px solid #1E293B;
-            padding: 15px 20px;
+            padding: 22px 35px;
             text-align: center;
+            background-color: #070D1B;
         }
         .brand-header {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 13px;
             font-weight: bold;
-            letter-spacing: 5px;
+            letter-spacing: 6px;
             color: #D4AF37;
             text-transform: uppercase;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         .brand-sub {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             font-size: 9px;
-            letter-spacing: 3px;
+            letter-spacing: 4px;
             color: #64748B;
             text-transform: uppercase;
-            margin-bottom: 10px;
+            margin-bottom: 22px;
         }
         .cert-title {
-            font-size: 24px;
+            font-size: 26px;
             color: #FFFFFF;
             font-weight: normal;
-            letter-spacing: 3px;
-            margin-bottom: 6px;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
         .cert-subtitle {
             font-size: 11px;
             color: #94A3B8;
             font-style: italic;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         .recipient-name {
-            font-size: 30px;
+            font-size: 32px;
             color: #F59E0B;
             font-weight: bold;
             font-style: italic;
-            margin-top: 3px;
-            margin-bottom: 6px;
-            padding-bottom: 4px;
+            margin-top: 6px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
             border-bottom: 2px solid #D4AF37;
             display: inline-block;
-            min-width: 340px;
+            min-width: 360px;
         }
         .course-title {
-            font-size: 17px;
+            font-size: 19px;
             color: #FFFFFF;
             font-weight: bold;
-            margin-top: 5px;
-            margin-bottom: 10px;
+            margin-top: 8px;
+            margin-bottom: 22px;
             letter-spacing: 1px;
         }
         .footer-table {
             width: 100%;
-            margin-top: 10px;
+            margin-top: 18px;
             border-collapse: collapse;
         }
         .footer-cell {
@@ -102,18 +103,18 @@
             border-top: 1px solid #475569;
             width: 75%;
             margin: 0 auto 4px auto;
-            padding-top: 4px;
-            font-size: 10px;
+            padding-top: 5px;
+            font-size: 11px;
             color: #E2E8F0;
             font-weight: bold;
         }
         .signature-sub {
-            font-size: 8px;
+            font-size: 9px;
             color: #94A3B8;
         }
         .seal-circle {
-            width: 46px;
-            height: 46px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             border: 2px solid #D4AF37;
             background-color: #0F172A;
@@ -121,27 +122,27 @@
             text-align: center;
         }
         .seal-text {
-            font-size: 7px;
+            font-size: 8px;
             color: #D4AF37;
             font-weight: bold;
             letter-spacing: 1px;
-            margin-top: 17px;
+            margin-top: 18px;
             text-transform: uppercase;
         }
         .cert-meta {
-            font-size: 8px;
+            font-size: 8.5px;
             color: #475569;
-            margin-top: 10px;
+            margin-top: 18px;
             font-family: monospace;
         }
     </style>
 </head>
 <body>
-    <table class="wrapper-table">
+    <table class="cert-table">
         <tr>
-            <td class="outer-border-cell">
-                <div class="outer-box">
-                    <div class="inner-border-box">
+            <td class="cert-cell">
+                <div class="outer-border">
+                    <div class="inner-border">
 
                         <div class="brand-header">Lythub Technologies</div>
                         <div class="brand-sub">Enterprise Learning &amp; Development Institute</div>

@@ -37,7 +37,10 @@ const MyExams = lazy(() => import('./pages/intern/MyExams'));
 const ExamInstructions = lazy(() => import('./pages/intern/ExamInstructions'));
 const TakeExam = lazy(() => import('./pages/intern/TakeExam'));
 const ExamResults = lazy(() => import('./pages/intern/ExamResults'));
+const InternResultsList = lazy(() => import('./pages/intern/InternResultsList'));
 const MyCertificates = lazy(() => import('./pages/intern/MyCertificates'));
+const InternAnnouncements = lazy(() => import('./pages/intern/InternAnnouncements'));
+const UserInternProfile = lazy(() => import('./pages/intern/InternProfile'));
 
 const PageLoader = () => (
     <div className="flex items-center justify-center h-screen bg-gray-950">
@@ -171,6 +174,11 @@ function App() {
                             <AdminLayout><AdminSettings /></AdminLayout>
                         </ProtectedRoute>
                     } />
+                    <Route path="/admin/profile" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminSettings /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
 
                     {/* Intern routes */}
                     <Route path="/intern" element={
@@ -203,6 +211,11 @@ function App() {
                             <TakeExam />
                         </ProtectedRoute>
                     } />
+                    <Route path="/intern/results" element={
+                        <ProtectedRoute allowedRoles={['intern']}>
+                            <InternLayout><InternResultsList /></InternLayout>
+                        </ProtectedRoute>
+                    } />
                     <Route path="/intern/results/:attemptId" element={
                         <ProtectedRoute allowedRoles={['intern']}>
                             <InternLayout><ExamResults /></InternLayout>
@@ -211,6 +224,16 @@ function App() {
                     <Route path="/intern/certificates" element={
                         <ProtectedRoute allowedRoles={['intern']}>
                             <InternLayout><MyCertificates /></InternLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/intern/announcements" element={
+                        <ProtectedRoute allowedRoles={['intern']}>
+                            <InternLayout><InternAnnouncements /></InternLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/intern/profile" element={
+                        <ProtectedRoute allowedRoles={['intern']}>
+                            <InternLayout><UserInternProfile /></InternLayout>
                         </ProtectedRoute>
                     } />
 

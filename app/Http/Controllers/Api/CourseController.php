@@ -30,14 +30,27 @@ class CourseController extends BaseApiController
 
     public function show(Course $course): JsonResponse
     {
-        $course->load('creator', 'modules.lessons', 'modules.resources');
+        $user = auth()->user();
 
         // Auto-enroll intern on view if not enrolled
-        if (auth()->user()->isIntern()) {
+        if ($user->isIntern()) {
             CourseEnrollment::firstOrCreate(
-                ['user_id' => auth()->id(), 'course_id' => $course->id],
-                ['enrolled_by' => auth()->id(), 'enrolled_at' => now()]
+                ['user_id' => $user->id, 'course_id' => $course->id],
+                ['enrolled_by' => $user->id, 'enrolled_at' => now()]
             );
+        }
+
+        $completedLessonIds = $user->lessonProgress()
+            ->whereNotNull('completed_at')
+            ->pluck('lesson_id')
+            ->toArray();
+
+        $course->load(['creator', 'modules.lessons', 'modules.resources']);
+
+        foreach ($course->modules as $module) {
+            foreach ($module->lessons as $lesson) {
+                $lesson->completed = in_array($lesson->id, $completedLessonIds);
+            }
         }
 
         return $this->success($course);

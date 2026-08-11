@@ -517,7 +517,14 @@ export default function CourseDetail() {
                     <span className="flex items-center gap-1.5 font-semibold text-red-400">
                       <Video size={16} /> Video Lecture
                     </span>
-                    <span>HD 1080p</span>
+                    <a
+                      href={videoResource?.url || `https://www.youtube.com/watch?v=${embedUrl.split('/').pop()}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-xs text-indigo-300 hover:text-white transition-colors font-medium bg-indigo-950/80 hover:bg-indigo-900 px-3 py-1 rounded-lg border border-indigo-500/30 shadow"
+                    >
+                      <ExternalLink size={13} /> Watch on YouTube
+                    </a>
                   </div>
                   <div className="rounded-2xl overflow-hidden aspect-video bg-black shadow-2xl border border-gray-800">
                     <iframe

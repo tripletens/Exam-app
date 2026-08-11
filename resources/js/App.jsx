@@ -49,9 +49,13 @@ const PageLoader = () => (
 const CatchAllRedirect = () => {
     const { user, isAuthenticated } = useAuthStore();
     if (isAuthenticated && user) {
-        const role = typeof user.role === 'object' ? user.role.value : user.role;
-        if (role === 'super_admin') return <Navigate to="/admin" replace />;
-        if (role === 'instructor') return <Navigate to="/instructor" replace />;
+        let userRole = 'intern';
+        if (typeof user.role === 'string') userRole = user.role;
+        else if (Array.isArray(user.role) && user.role.length > 0) userRole = typeof user.role[0] === 'string' ? user.role[0] : (user.role[0].value || user.role[0].name || 'intern');
+        else if (typeof user.role === 'object' && user.role !== null) userRole = user.role.value || user.role.name || 'intern';
+
+        if (userRole === 'super_admin') return <Navigate to="/admin" replace />;
+        if (userRole === 'instructor') return <Navigate to="/instructor" replace />;
         return <Navigate to="/intern" replace />;
     }
     return <Navigate to="/login" replace />;
@@ -77,9 +81,19 @@ function App() {
                             <AdminLayout><AdminCourses /></AdminLayout>
                         </ProtectedRoute>
                     } />
+                    <Route path="/admin/courses/:id/modules" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminModules /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
                     <Route path="/admin/modules" element={
                         <ProtectedRoute allowedRoles={['super_admin']}>
                             <AdminLayout><AdminModules /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/modules/:id/lessons" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminLessons /></AdminLayout>
                         </ProtectedRoute>
                     } />
                     <Route path="/admin/lessons" element={
@@ -120,6 +134,11 @@ function App() {
                     <Route path="/admin/interns/:id" element={
                         <ProtectedRoute allowedRoles={['super_admin']}>
                             <AdminLayout><InternProfile /></AdminLayout>
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/admin/performance" element={
+                        <ProtectedRoute allowedRoles={['super_admin']}>
+                            <AdminLayout><AdminReports /></AdminLayout>
                         </ProtectedRoute>
                     } />
                     <Route path="/admin/attempts" element={

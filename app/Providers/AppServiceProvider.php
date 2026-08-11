@@ -10,7 +10,17 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void {}
+    public function register(): void
+    {
+        $this->app->bind(
+            \App\Contracts\Repositories\DashboardRepositoryInterface::class,
+            \App\Repositories\DashboardRepository::class
+        );
+        $this->app->bind(
+            \App\Contracts\Services\DashboardServiceInterface::class,
+            \App\Services\DashboardService::class
+        );
+    }
 
     public function boot(): void
     {

@@ -2,8 +2,14 @@
 
 namespace App\Providers;
 
+use App\Contracts\Repositories\DashboardRepositoryInterface;
+use App\Contracts\Repositories\LessonRepositoryInterface;
+use App\Contracts\Services\DashboardServiceInterface;
 use App\Models\ExamAttempt;
 use App\Policies\ExamAttemptPolicy;
+use App\Repositories\DashboardRepository;
+use App\Repositories\LessonRepository;
+use App\Services\DashboardService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -13,12 +19,16 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(
-            \App\Contracts\Repositories\DashboardRepositoryInterface::class,
-            \App\Repositories\DashboardRepository::class
+            DashboardRepositoryInterface::class,
+            DashboardRepository::class
         );
         $this->app->bind(
-            \App\Contracts\Services\DashboardServiceInterface::class,
-            \App\Services\DashboardService::class
+            DashboardServiceInterface::class,
+            DashboardService::class
+        );
+        $this->app->bind(
+            LessonRepositoryInterface::class,
+            LessonRepository::class
         );
     }
 

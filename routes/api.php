@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CourseController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ExamAttemptController;
 use App\Http\Controllers\Api\ExamController;
+use App\Http\Controllers\Api\LearningPathController;
 use App\Http\Controllers\Api\LessonController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\QuestionController;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes — Lythub LMS & Exam System
 |--------------------------------------------------------------------------
 */
 
@@ -26,20 +27,28 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 
 // Authenticated routes
 Route::middleware('auth:sanctum')->group(function () {
+
     // Auth
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/auth/password', [AuthController::class, 'changePassword']);
 
-    // Courses (read-only for interns)
+    // Dashboards
+    Route::get('/dashboard/intern', [DashboardController::class, 'intern']);
+    Route::get('/dashboard/admin', [DashboardController::class, 'admin']);
+    Route::get('/dashboard/instructor', [DashboardController::class, 'instructor']);
+
+    // Courses & Enrollment
     Route::get('/courses', [CourseController::class, 'index']);
     Route::get('/courses/{course}', [CourseController::class, 'show']);
-    Route::get('/courses/{course}/progress', [CourseController::class, 'progress']);
 
     // Modules
     Route::get('/modules', [ModuleController::class, 'index']);
     Route::get('/modules/{module}', [ModuleController::class, 'show']);
 
     // Lessons
+    Route::get('/lessons', [LessonController::class, 'index']);
     Route::get('/lessons/{lesson}', [LessonController::class, 'show']);
     Route::post('/lessons/{lesson}/complete', [LessonController::class, 'markComplete']);
 
@@ -59,22 +68,29 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/exam-attempts/{attempt}/submit', [ExamAttemptController::class, 'submit']);
     Route::get('/exam-attempts/{attempt}', [ExamAttemptController::class, 'show']);
 
-    // Announcements
-    Route::get('/announcements', [AnnouncementController::class, 'index']);
-
     // Certificates
     Route::get('/certificates', [CertificateController::class, 'index']);
     Route::get('/certificates/{certificate}/download', [CertificateController::class, 'download']);
 
-    // Dashboards
-    Route::get('/dashboard/intern', [DashboardController::class, 'intern']);
-    Route::get('/dashboard/instructor', [DashboardController::class, 'instructor']);
+    // Announcements
+    Route::get('/announcements', [AnnouncementController::class, 'index']);
 
-    // ─── Admin + Instructor ───────────────────────────────────────────────────
-    Route::middleware('role:super_admin|instructor')->group(function () {
+    // ─── ADMIN & INSTRUCTOR ONLY ──────────────────────────────────────────
+    Route::middleware('role:super_admin,instructor')->group(function () {
+
+        // User / Intern Management
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/users', [UserController::class, 'store']);
+        Route::get('/users/{user}', [UserController::class, 'show']);
+        Route::put('/users/{user}', [UserController::class, 'update']);
+        Route::delete('/users/{user}', [UserController::class, 'destroy']);
+        Route::post('/users/import', [UserController::class, 'import']);
+
         // Courses
         Route::post('/courses', [CourseController::class, 'store']);
         Route::put('/courses/{course}', [CourseController::class, 'update']);
+        Route::delete('/courses/{course}', [CourseController::class, 'destroy']);
+        Route::post('/courses/{course}/enroll', [CourseController::class, 'enroll']);
 
         // Modules
         Route::post('/modules', [ModuleController::class, 'store']);
@@ -94,49 +110,31 @@ Route::middleware('auth:sanctum')->group(function () {
         // Exams
         Route::post('/exams', [ExamController::class, 'store']);
         Route::put('/exams/{exam}', [ExamController::class, 'update']);
-        Route::post('/exams/{exam}/publish', [ExamController::class, 'publish']);
-        Route::post('/exams/{exam}/unpublish', [ExamController::class, 'unpublish']);
-        Route::post('/exams/{exam}/bulk-questions', [QuestionController::class, 'bulkStore']);
-
-        // Questions
-        Route::apiResource('/questions', QuestionController::class)->except(['index', 'show']);
-        Route::get('/questions', [QuestionController::class, 'index']);
-    });
-
-    // ─── Super Admin only ─────────────────────────────────────────────────────
-    Route::middleware('role:super_admin')->group(function () {
-        // Dashboard
-        Route::get('/dashboard/admin', [DashboardController::class, 'admin']);
-
-        // Courses
-        Route::delete('/courses/{course}', [CourseController::class, 'destroy']);
-        Route::post('/courses/{course}/enroll', [CourseController::class, 'enroll']);
-
-        // Exams
         Route::delete('/exams/{exam}', [ExamController::class, 'destroy']);
         Route::post('/exams/{exam}/assign', [ExamController::class, 'assign']);
 
-        // Users (intern management)
-        Route::get('/users', [UserController::class, 'index']);
-        Route::post('/users', [UserController::class, 'store']);
-        Route::get('/users/{user}', [UserController::class, 'show']);
-        Route::put('/users/{user}', [UserController::class, 'update']);
-        Route::delete('/users/{user}', [UserController::class, 'destroy']);
-        Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword']);
+        // Question Bank & Bulk Upload
+        Route::get('/exams/{exam}/questions', [QuestionController::class, 'index']);
+        Route::post('/exams/{exam}/questions', [QuestionController::class, 'store']);
+        Route::post('/exams/{exam}/bulk-questions', [QuestionController::class, 'bulkStore']);
+        Route::put('/questions/{question}', [QuestionController::class, 'update']);
+        Route::delete('/questions/{question}', [QuestionController::class, 'destroy']);
+
+        // Learning Paths
+        Route::apiResource('/learning-paths', LearningPathController::class);
+
+        // Certificates
+        Route::post('/certificates/issue', [CertificateController::class, 'issue']);
+        Route::delete('/certificates/{certificate}', [CertificateController::class, 'destroy']);
 
         // Announcements
         Route::post('/announcements', [AnnouncementController::class, 'store']);
-        Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update']);
         Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy']);
 
-        // Certificates
-        Route::post('/certificates', [CertificateController::class, 'store']);
-        Route::delete('/certificates/{certificate}', [CertificateController::class, 'destroy']);
-
         // Reports
+        Route::get('/reports/overview', [ReportController::class, 'overview']);
         Route::get('/reports/intern-performance', [ReportController::class, 'internPerformance']);
-        Route::get('/reports/course-completion', [ReportController::class, 'courseCompletion']);
-        Route::get('/reports/exam-performance', [ReportController::class, 'examPerformance']);
+        Route::get('/reports/exam-analytics', [ReportController::class, 'examAnalytics']);
         Route::get('/reports/export', [ReportController::class, 'export']);
     });
 });

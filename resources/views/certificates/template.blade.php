@@ -6,31 +6,32 @@
     <style>
         @page {
             margin: 0;
-            size: 297mm 210mm;
+            size: A4 landscape;
         }
         html, body {
             margin: 0;
             padding: 0;
-            width: 297mm;
-            height: 210mm;
+            width: 100%;
+            height: 100%;
             background-color: #070D1B;
             font-family: 'DejaVu Serif', 'Georgia', serif;
             color: #F8FAFC;
         }
         .outer-frame {
             width: 281mm;
-            height: 194mm;
-            margin: 8mm auto;
+            height: 192mm;
+            margin: 6mm auto;
             border: 3px solid #D4AF37;
-            padding: 4mm;
+            padding: 3mm;
             box-sizing: border-box;
             background-color: #070D1B;
+            page-break-inside: avoid;
         }
         .inner-frame {
             width: 100%;
             height: 100%;
             border: 1px solid #1E293B;
-            padding: 15px 30px;
+            padding: 12px 25px;
             box-sizing: border-box;
             text-align: center;
             position: relative;
@@ -51,45 +52,45 @@
             letter-spacing: 3px;
             color: #64748B;
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
         .cert-title {
-            font-size: 28px;
+            font-size: 26px;
             color: #FFFFFF;
             font-weight: normal;
             letter-spacing: 3px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
         .cert-subtitle {
-            font-size: 12px;
+            font-size: 11px;
             color: #94A3B8;
             font-style: italic;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .recipient-name {
-            font-size: 34px;
+            font-size: 32px;
             color: #F59E0B;
             font-weight: bold;
             font-style: italic;
-            margin-top: 5px;
-            margin-bottom: 10px;
-            padding-bottom: 6px;
+            margin-top: 4px;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
             border-bottom: 2px solid #D4AF37;
             display: inline-block;
             min-width: 380px;
         }
         .course-title {
-            font-size: 20px;
+            font-size: 18px;
             color: #FFFFFF;
             font-weight: bold;
-            margin-top: 10px;
-            margin-bottom: 20px;
+            margin-top: 8px;
+            margin-bottom: 12px;
             letter-spacing: 1px;
         }
         .footer-table {
             width: 100%;
-            margin-top: 25px;
+            margin-top: 15px;
             border-collapse: collapse;
         }
         .footer-cell {
@@ -111,8 +112,8 @@
             color: #94A3B8;
         }
         .seal-circle {
-            width: 58px;
-            height: 58px;
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
             border: 2px solid #D4AF37;
             background-color: #0F172A;
@@ -124,13 +125,13 @@
             color: #D4AF37;
             font-weight: bold;
             letter-spacing: 1px;
-            margin-top: 22px;
+            margin-top: 20px;
             text-transform: uppercase;
         }
         .cert-meta {
             font-size: 9px;
             color: #475569;
-            margin-top: 18px;
+            margin-top: 12px;
             font-family: monospace;
         }
     </style>

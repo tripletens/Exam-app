@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\Course;
+use App\Models\CourseEnrollment;
+use App\Models\Exam;
+use App\Models\ExamAssignment;
 use App\Models\User;
 use App\Services\ProgressService;
 use Illuminate\Http\JsonResponse;
@@ -26,7 +30,7 @@ class UserController extends BaseApiController
 
     public function store(Request $request): JsonResponse
     {
-        $user = User::create($request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:users'],
             'password' => ['required', 'string', 'min:8'],
@@ -34,12 +38,36 @@ class UserController extends BaseApiController
             'phone' => ['nullable', 'string'],
             'department' => ['nullable', 'string'],
             'is_active' => ['boolean'],
-        ]) + ['password' => Hash::make($request->password)]);
+        ]);
 
-        // Assign Spatie role
-        $user->assignRole($user->role->value);
+        $user = User::create([
+            ...$validated,
+            'password' => Hash::make($validated['password']),
+        ]);
 
-        return $this->success($user, 'User created', 201);
+        $roleName = is_object($user->role) ? $user->role->value : $user->role;
+        $user->assignRole($roleName);
+
+        // Auto-enroll new intern accounts in all published courses & exams
+        if ($roleName === 'intern') {
+            $courses = Course::where('status', 'published')->get();
+            foreach ($courses as $course) {
+                CourseEnrollment::firstOrCreate(
+                    ['user_id' => $user->id, 'course_id' => $course->id],
+                    ['enrolled_by' => auth()->id() ?? $user->id, 'enrolled_at' => now()]
+                );
+            }
+
+            $exams = Exam::where('status', 'published')->get();
+            foreach ($exams as $exam) {
+                ExamAssignment::firstOrCreate(
+                    ['exam_id' => $exam->id, 'user_id' => $user->id],
+                    ['assigned_by' => auth()->id() ?? $user->id, 'assigned_at' => now()]
+                );
+            }
+        }
+
+        return $this->success($user, 'User created and assigned to courses', 201);
     }
 
     public function show(User $user): JsonResponse
@@ -64,17 +92,27 @@ class UserController extends BaseApiController
 
     public function update(Request $request, User $user): JsonResponse
     {
-        $user->update($request->validate([
+        $validated = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
-            'email' => ['sometimes', 'email', 'unique:users,email,' . $user->id],
+            'email' => ['sometimes', 'email', "unique:users,email,{$user->id}"],
+            'password' => ['nullable', 'string', 'min:8'],
             'role' => ['sometimes', 'in:super_admin,instructor,intern'],
             'phone' => ['nullable', 'string'],
             'department' => ['nullable', 'string'],
             'is_active' => ['boolean'],
-        ]));
+        ]);
 
-        if ($request->has('role')) {
-            $user->syncRoles([$user->role->value]);
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        if (isset($validated['role'])) {
+            $roleName = is_object($user->role) ? $user->role->value : $user->role;
+            $user->syncRoles([$roleName]);
         }
 
         return $this->success($user, 'User updated');
@@ -82,17 +120,7 @@ class UserController extends BaseApiController
 
     public function destroy(User $user): JsonResponse
     {
-        if ($user->id === auth()->id()) {
-            return $this->error('Cannot delete your own account.', 403);
-        }
         $user->delete();
         return $this->success(null, 'User deleted');
-    }
-
-    public function resetPassword(Request $request, User $user): JsonResponse
-    {
-        $request->validate(['password' => ['required', 'string', 'min:8']]);
-        $user->update(['password' => Hash::make($request->password)]);
-        return $this->success(null, 'Password reset successfully');
     }
 }

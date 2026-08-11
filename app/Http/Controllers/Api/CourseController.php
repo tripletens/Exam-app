@@ -20,10 +20,9 @@ class CourseController extends BaseApiController
             ->when($request->search, fn($q) => $q->where('title', 'like', "%{$request->search}%"))
             ->latest();
 
-        // Interns only see enrolled courses that are published
+        // Interns see all published training courses
         if (auth()->user()->isIntern()) {
-            $enrolledIds = auth()->user()->enrolledCourses()->pluck('courses.id');
-            $query->whereIn('id', $enrolledIds)->where('status', 'published');
+            $query->where('status', 'published');
         }
 
         return $this->paginated($query->paginate(12));
@@ -32,6 +31,15 @@ class CourseController extends BaseApiController
     public function show(Course $course): JsonResponse
     {
         $course->load('creator', 'modules.lessons', 'modules.resources');
+
+        // Auto-enroll intern on view if not enrolled
+        if (auth()->user()->isIntern()) {
+            CourseEnrollment::firstOrCreate(
+                ['user_id' => auth()->id(), 'course_id' => $course->id],
+                ['enrolled_by' => auth()->id(), 'enrolled_at' => now()]
+            );
+        }
+
         return $this->success($course);
     }
 
@@ -98,37 +106,6 @@ class CourseController extends BaseApiController
             $enrolled[] = $userId;
         }
 
-        return $this->success(['enrolled_count' => count($enrolled)], 'Interns enrolled successfully');
-    }
-
-    public function myProgress(Course $course): JsonResponse
-    {
-        $user = auth()->user();
-        $enrollment = CourseEnrollment::where('user_id', $user->id)
-            ->where('course_id', $course->id)
-            ->first();
-
-        if (!$enrollment) {
-            return $this->error('You are not enrolled in this course', 404);
-        }
-
-        $course->load('modules.lessons.progress');
-        $totalLessons = 0;
-        $completedLessons = 0;
-
-        foreach ($course->modules as $module) {
-            foreach ($module->lessons as $lesson) {
-                $totalLessons++;
-                if ($lesson->isCompletedBy($user->id)) $completedLessons++;
-            }
-        }
-
-        return $this->success([
-            'enrolled_at' => $enrollment->enrolled_at,
-            'completed_at' => $enrollment->completed_at,
-            'total_lessons' => $totalLessons,
-            'completed_lessons' => $completedLessons,
-            'percentage' => $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0,
-        ]);
+        return $this->success($enrolled, 'Interns enrolled successfully');
     }
 }

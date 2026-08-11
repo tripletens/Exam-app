@@ -19,15 +19,7 @@ class ExamController extends BaseApiController
             ->latest();
 
         if (auth()->user()->isIntern()) {
-            $user = auth()->user();
-            $assignedIds = ExamAssignment::where('user_id', $user->id)->pluck('exam_id');
-            $enrolledCourseIds = CourseEnrollment::where('user_id', $user->id)->pluck('course_id');
-
-            $query->where(function ($q) use ($assignedIds, $enrolledCourseIds) {
-                $q->whereIn('id', $assignedIds)
-                  ->orWhereIn('course_id', $enrolledCourseIds)
-                  ->orWhereNull('course_id'); // Also include global published standalone exams
-            })->where('status', 'published');
+            $query->where('status', 'published');
         }
 
         return $this->paginated($query->paginate(15));
@@ -36,8 +28,15 @@ class ExamController extends BaseApiController
     public function show(Exam $exam): JsonResponse
     {
         $exam->load('course', 'module', 'questions.options');
-        // Strip is_correct from options for non-admins
+
+        // Auto-assign intern on view if not assigned
         if (auth()->user()->isIntern()) {
+            ExamAssignment::firstOrCreate(
+                ['exam_id' => $exam->id, 'user_id' => auth()->id()],
+                ['assigned_by' => auth()->id(), 'assigned_at' => now()]
+            );
+
+            // Strip is_correct from options for interns
             $exam->questions->each(function ($q) {
                 $q->options->each(fn($o) => $o->makeHidden('is_correct'));
             });
@@ -47,63 +46,52 @@ class ExamController extends BaseApiController
 
     public function store(Request $request): JsonResponse
     {
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'course_id' => ['nullable', 'exists:courses,id'],
+            'module_id' => ['nullable', 'exists:course_modules,id'],
+            'description' => ['nullable', 'string'],
+            'duration_minutes' => ['required', 'integer', 'min:1'],
+            'pass_percentage' => ['required', 'integer', 'min:1', 'max:100'],
+            'max_attempts' => ['required', 'integer', 'min:1'],
+            'randomize_questions' => ['boolean'],
+            'randomize_answers' => ['boolean'],
+            'show_results_immediately' => ['boolean'],
+            'status' => ['required', 'in:draft,published,archived'],
+        ]);
+
         $exam = Exam::create([
-            ...$request->validate([
-                'course_id' => ['nullable', 'exists:courses,id'],
-                'module_id' => ['nullable', 'exists:course_modules,id'],
-                'title' => ['required', 'string', 'max:255'],
-                'description' => ['nullable', 'string'],
-                'duration_minutes' => ['required', 'integer', 'min:1'],
-                'pass_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
-                'max_attempts' => ['required', 'integer', 'min:1'],
-                'starts_at' => ['nullable', 'date'],
-                'ends_at' => ['nullable', 'date', 'after:starts_at'],
-                'randomize_questions' => ['boolean'],
-                'randomize_answers' => ['boolean'],
-                'show_results_immediately' => ['boolean'],
-                'allow_retakes' => ['boolean'],
-                'status' => ['required', 'in:draft,published,archived'],
-            ]),
+            ...$validated,
             'created_by' => auth()->id(),
         ]);
-        return $this->success($exam, 'Exam created', 201);
+
+        return $this->success($exam, 'Exam created successfully', 201);
     }
 
     public function update(Request $request, Exam $exam): JsonResponse
     {
-        $exam->update($request->validate([
-            'title' => ['sometimes', 'string'],
+        $validated = $request->validate([
+            'title' => ['sometimes', 'string', 'max:255'],
+            'course_id' => ['nullable', 'exists:courses,id'],
+            'module_id' => ['nullable', 'exists:course_modules,id'],
             'description' => ['nullable', 'string'],
             'duration_minutes' => ['sometimes', 'integer', 'min:1'],
-            'pass_percentage' => ['sometimes', 'numeric', 'min:0', 'max:100'],
+            'pass_percentage' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'max_attempts' => ['sometimes', 'integer', 'min:1'],
-            'starts_at' => ['nullable', 'date'],
-            'ends_at' => ['nullable', 'date'],
             'randomize_questions' => ['boolean'],
             'randomize_answers' => ['boolean'],
             'show_results_immediately' => ['boolean'],
-            'allow_retakes' => ['boolean'],
             'status' => ['sometimes', 'in:draft,published,archived'],
-        ]));
-        return $this->success($exam, 'Exam updated');
+        ]);
+
+        $exam->update($validated);
+        return $this->success($exam, 'Exam updated successfully');
     }
 
     public function destroy(Exam $exam): JsonResponse
     {
         $exam->delete();
-        return $this->success(null, 'Exam deleted');
-    }
-
-    public function publish(Exam $exam): JsonResponse
-    {
-        $exam->update(['status' => 'published']);
-        return $this->success(null, 'Exam published');
-    }
-
-    public function unpublish(Exam $exam): JsonResponse
-    {
-        $exam->update(['status' => 'draft']);
-        return $this->success(null, 'Exam unpublished');
+        return $this->success(null, 'Exam deleted successfully');
     }
 
     public function assign(Request $request, Exam $exam): JsonResponse
@@ -120,6 +108,6 @@ class ExamController extends BaseApiController
             );
         }
 
-        return $this->success(null, 'Exam assigned to ' . count($request->user_ids) . ' intern(s)');
+        return $this->success(null, 'Exam assigned to interns successfully');
     }
 }

@@ -1,0 +1,9 @@
+.git
+.github
+Dockerfile
+docker/
+render.yaml
+node_modules
+tests/
+phpunit.xml
+.phpunit.result.cache

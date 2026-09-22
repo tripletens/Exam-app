@@ -30,6 +30,19 @@ class RoleAndUserSeeder extends Seeder
         );
         $admin->syncRoles(['super_admin']);
 
+        // Admin User: Kalu Chibuike
+        $kaluAdmin = User::updateOrCreate(
+            ['email' => 'kaluchibuike070@gmail.com'],
+            [
+                'name' => 'Kalu Chibuike',
+                'password' => Hash::make('Password@123'),
+                'role' => 'super_admin',
+                'is_active' => true,
+                'department' => 'Administration',
+            ]
+        );
+        $kaluAdmin->syncRoles(['super_admin']);
+
         // Instructor
         $instructor = User::updateOrCreate(
             ['email' => 'instructor@lythub.com'],
